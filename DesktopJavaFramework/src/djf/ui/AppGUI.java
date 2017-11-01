@@ -291,7 +291,6 @@ public class AppGUI {
 	String stylesheet = props.getProperty(APP_PATH_CSS);
 	stylesheet += props.getProperty(APP_CSS);
         Class appClass = app.getClass();
-        System.out.println(stylesheet);
 	URL stylesheetURL = appClass.getResource(stylesheet);
 	String stylesheetPath = stylesheetURL.toExternalForm();
 	primaryScene.getStylesheets().add(stylesheetPath);	
