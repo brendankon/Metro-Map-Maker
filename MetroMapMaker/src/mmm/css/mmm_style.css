@@ -15,12 +15,12 @@ and open the template in the editor.
 .edit_toolbar_row {
     -fx-padding: 0px;
     -fx-spacing: 10;
-    -fx-background-color: #ddddff;
+    -fx-background-color: #bde6fd;
     -fx-background-radius: 5.0;
     -fx-padding: 10;
     -fx-spacing: 8;
     -fx-border-width: 2px;
-    -fx-border-color: #7777dd;
+    -fx-border-color: #000000;
 }
 
 .color_chooser_pane {
@@ -31,15 +31,16 @@ and open the template in the editor.
 .color_chooser_control {
     -fx-font-weight:bold;
     -fx-font-size:20;
+    -fx-label-padding: 0 30 0 0;
 }
 
 .bordered_pane {
-    -fx-background-color: #aaaaff;
+    -fx-background-color: #9dd9fd;
     -fx-background-radius: 5.0;
     -fx-padding: 15;
     -fx-spacing: 10;
     -fx-border-width: 2px;
-    -fx-border-color: #7777dd;
+    -fx-border-color: #000000;
 }
 
 .right_bordered_pane{
@@ -54,10 +55,38 @@ and open the template in the editor.
 .multi_HBox_row{
     -fx-padding: 0px;
     -fx-spacing: 10;
-    -fx-background-color: #ddddff;
+    -fx-background-color: #bde6fd;
     -fx-background-radius: 5.0;
-    -fx-padding: 10;
+    -fx-padding: 5;
     -fx-spacing: 8;
     -fx-border-width: 2px;
-    -fx-border-color: #ddddff;
+    -fx-border-color: #bde6fd;
+}
+
+.find_Route_Row{    
+    -fx-padding: 0px;
+    -fx-spacing: 10;
+    -fx-background-color: #bde6fd;
+    -fx-background-radius: 5.0;
+    -fx-padding: 5;
+    -fx-spacing: 30;
+    -fx-border-width: 2px;
+    -fx-border-color: #bde6fd;
+}
+
+.nav_Label{
+    -fx-font-weight:bold;
+    -fx-font-size:20;
+    -fx-label-padding: 0 250 0 0;
+}
+
+.nav_Bottom_Row{
+    -fx-padding: 0px;
+    -fx-spacing: 10;
+    -fx-background-color: #bde6fd;
+    -fx-background-radius: 5.0;
+    -fx-padding: 3;
+    -fx-spacing: 25;
+    -fx-border-width: 2px;
+    -fx-border-color: #bde6fd;
 }

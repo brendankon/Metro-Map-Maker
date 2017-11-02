@@ -28,6 +28,8 @@
         <property name="ZOOM_IN_ICON"       value="ZoomIn.png"></property>
         <property name="ZOOM_OUT_ICON"      value="ZoomOut.png"></property>
         <property name="LIST_ICON"          value="List.png"></property>
+        <property name="INCREASE_SIZE_ICON" value="IncreaseSize.png"></property>
+        <property name="DECREASE_SIZE_ICON" value="DecreaseSize.png"></property>
         
         <!-- TOOLTIPS FOR BUTTONS -->
         <property name="NEW_TOOLTIP"        value="Create a New Page"></property>
@@ -41,12 +43,19 @@
         <property name="EXPORT_TOOLTIP"         value="Export"></property>
         <property name="FIND_ROUTE_TOOLTIP"     value="Find Route"></property>
         <property name="ITALIC_TOOLTIP"         value="Italics"></property>
-        <property name="REMOVE_TOOLTIP"         value="Remove Element"></property>
+        <property name="REMOVE_TOOLTIP"         value="Remove"></property>
         <property name="ROTATE_TOOLTIP"         value="Rotate"></property>
         <property name="ZOOM_IN_TOOLTIP"        value="Zoom In"></property>
         <property name="ZOOM_OUT_TOOLTIP"       value="Zoom Out"></property>
         <property name="LIST_TOOLTIP"           value="List Stations"></property>
         <property name="EDIT_LINE_TOOLTIP"      value="Edit Line"></property>
+        <property name="SNAP_TOOLTIP"           value="Snap to Grid"></property>
+        <property name="MOVE_LABEL_TOOLTIP"     value="Move Label"></property>
+        <property name="SET_IMG_BACK_TOOLTIP"   value="Set Image Background"></property>
+        <property name="ADD_IMAGE_TOOLTIP"      value="Add Image"></property>
+        <property name="ADD_LABEL_TOOLTIP"      value="Add Label"></property>
+        <property name="INCREASE_SIZE_TOOLTIP"  value="Increase Map Size"></property>
+        <property name="DECREASE_SIZE_TOOLTIP"  value="Decrease Map Size"></property>
         
         <!-- ERROR MESSAGES -->
         <property name="CLOSE_BUTTON_TEXT"      value="Close"></property>
