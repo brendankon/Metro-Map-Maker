@@ -17,7 +17,20 @@ import djf.AppTemplate;
 import static djf.settings.AppPropertyType.*;
 import static djf.settings.AppStartupConstants.FILE_PROTOCOL;
 import static djf.settings.AppStartupConstants.PATH_IMAGES;
+import static djf.settings.AppStartupConstants.PATH_WORK;
+import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
 /**
  * This class provides the basic user interface for this application,
@@ -27,9 +40,11 @@ import java.net.URL;
  * @author Richard McKenna
  * @version 1.0
  */
+@SuppressWarnings("unchecked")
 public class AppGUI {
     // THIS HANDLES INTERACTIONS WITH FILE-RELATED CONTROLS
     protected AppFileController fileController;
+    protected AppTemplate app;
 
     // THIS IS THE APPLICATION WINDOW
     protected Stage primaryStage;
@@ -41,7 +56,9 @@ public class AppGUI {
     // APPLICATION AppGUI. NOTE THAT THE WORKSPACE WILL GO
     // IN THE CENTER REGION OF THE appPane
     protected BorderPane appPane;
-    
+    protected BorderPane startPane;
+    protected Pane centerPane;
+    protected VBox filePane;
     // THIS IS THE TOP PANE WHERE WE CAN PUT TOOLBAR
     protected FlowPane topToolbarPane;
     
@@ -76,16 +93,17 @@ public class AppGUI {
 	// SAVE THESE FOR LATER
 	primaryStage = initPrimaryStage;
 	appTitle = initAppTitle;
+        this.app = app;
 	       
         // INIT THE TOOLBAR
         initTopToolbar(app);
         		
         // AND FINALLY START UP THE WINDOW (WITHOUT THE WORKSPACE)
-        initWindow();
+        initStartup();
+        initStylesheet(app);
         
         // INIT THE STYLESHEET AND THE STYLE FOR THE FILE TOOLBAR
-        initStylesheet(app);
-        initFileToolbarStyle();        
+        
     }
     
     /**
@@ -196,6 +214,123 @@ public class AppGUI {
         topToolbarPane = new FlowPane();
         topToolbarPane.getChildren().add(fileToolbar);
     }
+    
+    private void initStartup(){
+        PropertiesManager props = PropertiesManager.getPropertiesManager();
+        String appIcon = FILE_PROTOCOL + PATH_IMAGES + props.getProperty(APP_LOGO);
+        primaryStage.setTitle(appTitle);
+        
+        
+        primaryStage.centerOnScreen();
+        primaryStage.setWidth(900);
+        primaryStage.setHeight(650);
+        
+        startPane = new BorderPane();
+        centerPane = new Pane();
+        filePane = new VBox();
+        filePane.getStyleClass().add(CLASS_EDIT_TOOLBAR);
+        
+        ArrayList<HBox> fileBoxes = new ArrayList();
+
+        for(int i = 0; i < 7; i++){
+            HBox h = new HBox();
+            fileBoxes.add(h);
+            filePane.getChildren().add(h);
+            h.getStyleClass().add(CLASS_FILE_ROW);
+            h.setMinWidth(170);
+            h.setPrefWidth(170);
+            h.setMaxWidth(USE_COMPUTED_SIZE);
+        }
+        Text t = new Text("Recents");
+        t.setFont(Font.font("System", FontWeight.BOLD, 18));
+        fileBoxes.get(0).getChildren().add(t);
+        
+        File workDir = new File(PATH_WORK);
+        File[] files = workDir.listFiles();
+        Arrays.sort(files, new Comparator<File>(){
+            @Override
+            public int compare(File f1, File f2)
+            {
+                return (Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()))*-1;
+            } });
+        
+        for(int i = 1; i < fileBoxes.size(); i++){
+            if(i <= files.length){
+            Hyperlink link = new Hyperlink();
+            File file = files[i-1];
+            link.setText(file.getName());
+            link.setFont(Font.font("System", 14));
+            link.setOnAction(e ->{
+                try {
+                primaryStage.setOnCloseRequest(null);
+                initWindow();
+                // RESET THE WORKSPACE
+		app.getWorkspaceComponent().resetWorkspace();
+
+                // RESET THE DATA
+                app.getDataComponent().resetData();
+                
+                // LOAD THE FILE INTO THE DATA
+                app.getFileComponent().loadData(app.getDataComponent(), file.getAbsolutePath());
+                
+		// MAKE SURE THE WORKSPACE IS ACTIVATED
+		app.getWorkspaceComponent().activateWorkspace(app.getGUI().getAppPane());
+                
+                // AND MAKE SURE THE FILE BUTTONS ARE PROPERLY ENABLED
+                fileController.setSaved(true);
+                app.getGUI().updateToolbarControls(fileController.isSaved());
+                initStylesheet(app);
+                
+            } catch (Exception x) {
+                System.out.println(x.toString());
+                AppMessageDialogSingleton dialog = AppMessageDialogSingleton.getSingleton();
+                dialog.show(props.getProperty(LOAD_ERROR_TITLE), props.getProperty(LOAD_ERROR_MESSAGE));
+            }
+            });
+            
+            fileBoxes.get(i).getChildren().add(link);
+            }
+        }
+        
+        Text title = new Text("Metro Map\n    Maker");
+        title.setFont(Font.font("Rockwell", FontWeight.BOLD, 60));
+        title.setLayoutX(165);
+        title.setLayoutY(75);
+        Image i = new Image(appIcon);
+        ImageView v = new ImageView(i);
+        v.setLayoutX(180);
+        v.setLayoutY(200);
+        
+        Hyperlink createLink = new Hyperlink("Create New Map");
+        createLink.setFont(Font.font("System", 16));
+        createLink.setLayoutX(270);
+        createLink.setLayoutY(540);
+        createLink.setOnAction(e ->{
+            primaryStage.setOnCloseRequest(null);
+            initWindow();
+            initStylesheet(app);
+            fileController.handleNewRequest();
+        });
+        
+        centerPane.getChildren().add(createLink);
+        centerPane.getChildren().add(title);
+        centerPane.getChildren().add(v);
+        
+        startPane.setCenter(centerPane);
+        startPane.setLeft(filePane);
+        
+        primaryScene = new Scene(startPane);
+        primaryStage.setScene(primaryScene);
+        
+        primaryStage.getIcons().add(new Image(appIcon));
+        primaryStage.setOnCloseRequest(e->{
+            e.consume();
+            initWindow();
+            initStylesheet(app);
+            primaryStage.setOnCloseRequest(null);
+        });
+      
+    }
 
     // INITIALIZE THE WINDOW (i.e. STAGE) PUTTING ALL THE CONTROLS
     // THERE EXCEPT THE WORKSPACE, WHICH WILL BE ADDED THE FIRST
@@ -228,6 +363,8 @@ public class AppGUI {
 
         // NOW TIE THE SCENE TO THE WINDOW
         primaryStage.setScene(primaryScene);
+        
+        initFileToolbarStyle();
     }
     
     /**
@@ -272,6 +409,8 @@ public class AppGUI {
      * put inside app_properties.xml.
      */
     public static final String CLASS_BORDERED_PANE = "bordered_pane";
+    public static final String CLASS_FILE_ROW = "file_row";
+    public static final String CLASS_EDIT_TOOLBAR = "file_row";
 
    /**
      *  Note that this is the default style class for the file buttons in

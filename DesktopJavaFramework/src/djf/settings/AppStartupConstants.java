@@ -21,6 +21,7 @@ public class AppStartupConstants
     public static final String FILE_PROTOCOL = "file:";
     public static final String PATH_DATA = "./data/";
     public static final String PATH_WORK = "./work/";
+    public static final String PATH_EXPORT = "./export/";
     public static final String PATH_IMAGES = "./images/";
     public static final String PATH_TEMP = "./temp/";
     public static final String PATH_EMPTY = ".";

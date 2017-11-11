@@ -57,7 +57,7 @@ and open the template in the editor.
     -fx-spacing: 10;
     -fx-background-color: #bde6fd;
     -fx-background-radius: 5.0;
-    -fx-padding: 5;
+    -fx-padding: 4;
     -fx-spacing: 8;
     -fx-border-width: 2px;
     -fx-border-color: #bde6fd;
@@ -68,7 +68,7 @@ and open the template in the editor.
     -fx-spacing: 10;
     -fx-background-color: #bde6fd;
     -fx-background-radius: 5.0;
-    -fx-padding: 5;
+    -fx-padding: 15;
     -fx-spacing: 30;
     -fx-border-width: 2px;
     -fx-border-color: #bde6fd;
@@ -87,6 +87,17 @@ and open the template in the editor.
     -fx-background-radius: 5.0;
     -fx-padding: 3;
     -fx-spacing: 25;
+    -fx-border-width: 2px;
+    -fx-border-color: #bde6fd;
+}
+
+.file_row {
+    -fx-padding: 0px;
+    -fx-spacing: 10;
+    -fx-background-color: #bde6fd;
+    -fx-background-radius: 5.0;
+    -fx-padding: 15;
+    -fx-spacing: 10;
     -fx-border-width: 2px;
     -fx-border-color: #bde6fd;
 }

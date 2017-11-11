@@ -105,6 +105,7 @@ public abstract class AppTemplate extends Application {
                 primaryStage.show();
 	    } 
 	}catch (Exception e) {
+            System.out.println(e.toString());
             AppMessageDialogSingleton dialog = AppMessageDialogSingleton.getSingleton();
             dialog.show(props.getProperty(PROPERTIES_LOAD_ERROR_TITLE), props.getProperty(PROPERTIES_LOAD_ERROR_MESSAGE));
 	}
@@ -129,6 +130,7 @@ public abstract class AppTemplate extends Application {
 	    return true;
 	} catch (InvalidXMLFileFormatException ixmlffe) {
 	    // SOMETHING WENT WRONG INITIALIZING THE XML FILE
+            System.out.println(ixmlffe.toString());
 	    AppMessageDialogSingleton dialog = AppMessageDialogSingleton.getSingleton();
 	    dialog.show(props.getProperty(PROPERTIES_LOAD_ERROR_TITLE), props.getProperty(PROPERTIES_LOAD_ERROR_MESSAGE));
 	    return false;

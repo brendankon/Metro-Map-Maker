@@ -9,7 +9,7 @@
 <properties>
     <property_list>
         <property name="APP_TITLE"	    value="Metro Map Maker"></property>
-	<property name="APP_LOGO"	    value="Export.png"></property>
+	<property name="APP_LOGO"	    value="Logo.png"></property>
 	<property name="APP_PATH_CSS"	    value="css/"></property>
 	<property name="APP_CSS"	    value="mmm_style.css"></property>
         
@@ -30,9 +30,13 @@
         <property name="LIST_ICON"          value="List.png"></property>
         <property name="INCREASE_SIZE_ICON" value="IncreaseSize.png"></property>
         <property name="DECREASE_SIZE_ICON" value="DecreaseSize.png"></property>
+        <property name="UNDO_ICON"          value="Undo.png"></property>
+        <property name="REDO_ICON"          value="Redo.png"></property>
+        <property name="ABOUT_ICON"         value="About.png"></property>
+        <property name="SAVE_AS_ICON"       value="SaveAs.png"></property>
         
         <!-- TOOLTIPS FOR BUTTONS -->
-        <property name="NEW_TOOLTIP"        value="Create a New Page"></property>
+        <property name="NEW_TOOLTIP"            value="Create a New Page"></property>
         <property name="LOAD_TOOLTIP"		value="Load an Existing Page"></property>
         <property name="SAVE_TOOLTIP"		value="Save this Page"></property>
         <property name="EXIT_TOOLTIP"		value="Exit the Application"></property>
@@ -56,12 +60,13 @@
         <property name="ADD_LABEL_TOOLTIP"      value="Add Label"></property>
         <property name="INCREASE_SIZE_TOOLTIP"  value="Increase Map Size"></property>
         <property name="DECREASE_SIZE_TOOLTIP"  value="Decrease Map Size"></property>
+        <property name="UNDO_TOOLTIP"           value="Undo"></property>
+        <property name="REDO_TOOLTIP"           value="Redo"></property>
+        <property name="ABOUT_TOOLTIP"          value="About"></property>
+        <property name="SAVE_AS_TOOLTIP"        value="Save As"></property>
         
         <!-- ERROR MESSAGES -->
-        <property name="CLOSE_BUTTON_TEXT"      value="Close"></property>
-
-        <property name="TAG_LOADING_ERROR_MESSAGE"      value="Error loading HTML Tags"></property>
-        <property name="TAG_LOADING_ERROR_TITLE"        value="Tag Loading Error"></property>
+        <property name="CLOSE_BUTTON_TEXT"              value="Close"></property>
         <property name="NEW_ERROR_MESSAGE"              value="An error occured creating New work."></property>
         <property name="NEW_ERROR_TITLE"		value="New Work Error"></property>
         <property name="LOAD_ERROR_MESSAGE"             value="An error occured loading work."></property>
@@ -88,8 +93,8 @@
         <property name="SAVE_UNSAVED_WORK_MESSAGE"	value="Do you want to save your unsaved work first?"></property>
 	<property name="SAVE_WORK_TITLE"		value="Save your work"></property>
 	<property name="LOAD_WORK_TITLE"		value="Select work file to load"></property>
-	<property name="WORK_FILE_EXT"			value="wt"></property>
-	<property name="WORK_FILE_EXT_DESC"		value="Web Tree Files"></property>
+	<property name="WORK_FILE_EXT"			value="mmm"></property>
+	<property name="WORK_FILE_EXT_DESC"		value="Metro Map Maker Files"></property>
 
         <!-- PROGRAM ICON FILES -->
         <property name="REMOVE_ELEMENT_ICON"	    value="RemoveElement.png"></property>

@@ -26,7 +26,15 @@ import static djf.settings.AppPropertyType.SAVE_ERROR_TITLE;
 import static djf.settings.AppPropertyType.SAVE_UNSAVED_WORK_MESSAGE;
 import static djf.settings.AppPropertyType.SAVE_UNSAVED_WORK_TITLE;
 import static djf.settings.AppPropertyType.SAVE_WORK_TITLE;
+import static djf.settings.AppStartupConstants.PATH_EXPORT;
 import static djf.settings.AppStartupConstants.PATH_WORK;
+import java.util.ArrayList;
+import java.util.Optional;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 
 /**
  * This class provides the event programmed responses for the file controls
@@ -44,6 +52,7 @@ public class AppFileController {
     
     // THIS IS THE FILE FOR THE WORK CURRENTLY BEING WORKED ON
     File currentWorkFile;
+    
 
     /**
      * This constructor just keeps the app for later.
@@ -90,28 +99,60 @@ public class AppFileController {
 
             // IF THE USER REALLY WANTS TO MAKE A NEW COURSE
             if (continueToMakeNew) {
-                // RESET THE WORKSPACE
-		app.getWorkspaceComponent().resetWorkspace();
-
-                // RESET THE DATA
-                app.getDataComponent().resetData();
                 
-                // NOW RELOAD THE WORKSPACE WITH THE RESET DATA
-                app.getWorkspaceComponent().reloadWorkspace(app.getDataComponent());
+                TextInputDialog fileName = new TextInputDialog();
+                fileName.setTitle("New File");
+                fileName.setHeaderText("Please enter file name");
+                
+                Optional<String> input = fileName.showAndWait();
+                if(input.isPresent()){
+                    
+                    File dir = new File(PATH_EXPORT + input.get());
+                    boolean success = dir.mkdir();
+                    
+                    if(success){
+                        
+                        File file = new File(PATH_WORK + "/" + input.get());
+                        System.out.println(file);
+                        file.createNewFile();
+                        
+                        app.getWorkspaceComponent().resetWorkspace();
 
-		// MAKE SURE THE WORKSPACE IS ACTIVATED
-		app.getWorkspaceComponent().activateWorkspace(app.getGUI().getAppPane());
-		
-		// WORK IS NOT SAVED
-                saved = false;
-		currentWorkFile = null;
+                        // RESET THE DATA
+                        app.getDataComponent().resetData();
 
-                // REFRESH THE GUI, WHICH WILL ENABLE AND DISABLE
-                // THE APPROPRIATE CONTROLS
-                app.getGUI().updateToolbarControls(saved);
+                        // NOW RELOAD THE WORKSPACE WITH THE RESET DATA
+                        app.getWorkspaceComponent().reloadWorkspace(app.getDataComponent());
 
-                // TELL THE USER NEW WORK IS UNDERWAY
-		dialog.show(props.getProperty(NEW_COMPLETED_TITLE), props.getProperty(NEW_COMPLETED_MESSAGE));
+                        // MAKE SURE THE WORKSPACE IS ACTIVATED
+                        app.getWorkspaceComponent().activateWorkspace(app.getGUI().getAppPane());
+
+                        // WORK IS NOT SAVED
+                        saved = false;
+                        currentWorkFile = file;
+                        
+                        // REFRESH THE GUI, WHICH WILL ENABLE AND DISABLE
+                        // THE APPROPRIATE CONTROLS
+                        app.getGUI().updateToolbarControls(saved);
+
+                        // TELL THE USER NEW WORK IS UNDERWAY
+                        dialog.show(props.getProperty(NEW_COMPLETED_TITLE), props.getProperty(NEW_COMPLETED_MESSAGE));
+                    }
+                    
+                    else{
+                        
+                        Alert alert = new Alert(AlertType.WARNING, "File name already exists. Do you wish to enter a new name?", ButtonType.YES, ButtonType.CANCEL);
+                        alert.setHeaderText("File Name Already Exists");
+                        Optional<ButtonType> result = alert.showAndWait();
+                        if(result.get() == ButtonType.YES){
+                            handleNewRequest();
+                        }
+                        else{
+                            
+                        }
+                    }
+                }
+
             }
         } catch (IOException ioe) {
             // SOMETHING WENT WRONG, PROVIDE FEEDBACK
@@ -325,6 +366,7 @@ public class AppFileController {
                 saved = true;
                 app.getGUI().updateToolbarControls(saved);
             } catch (Exception e) {
+                System.out.println(e.toString());
                 AppMessageDialogSingleton dialog = AppMessageDialogSingleton.getSingleton();
                 dialog.show(props.getProperty(LOAD_ERROR_TITLE), props.getProperty(LOAD_ERROR_MESSAGE));
             }
@@ -339,6 +381,10 @@ public class AppFileController {
      */
     public void markFileAsNotSaved() {
         saved = false;
+    }
+    
+    public void setSaved(boolean b){
+        saved = b;
     }
 
     /**

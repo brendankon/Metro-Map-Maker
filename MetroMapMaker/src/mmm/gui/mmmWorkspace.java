@@ -22,12 +22,15 @@ import djf.ui.AppGUI;
 import djf.AppTemplate;
 import djf.components.AppDataComponent;
 import djf.components.AppWorkspaceComponent;
+import static djf.settings.AppPropertyType.ABOUT_ICON;
+import static djf.settings.AppPropertyType.ABOUT_TOOLTIP;
 import static djf.settings.AppPropertyType.ADD_ICON;
 import static djf.settings.AppPropertyType.ADD_IMAGE_TOOLTIP;
 import static djf.settings.AppPropertyType.ADD_LABEL_TOOLTIP;
 import static djf.settings.AppPropertyType.ADD_LINE_TOOLTIP;
 import static djf.settings.AppPropertyType.ADD_STATION_TOOLTIP;
 import static djf.settings.AppPropertyType.ADD_TO_LINE_TOOLTIP;
+import static djf.settings.AppPropertyType.APP_LOGO;
 import static djf.settings.AppPropertyType.BOLD_ICON;
 import static djf.settings.AppPropertyType.BOLD_TOOLTIP;
 import static djf.settings.AppPropertyType.DECREASE_SIZE_ICON;
@@ -44,16 +47,25 @@ import static djf.settings.AppPropertyType.ITALIC_TOOLTIP;
 import static djf.settings.AppPropertyType.LIST_ICON;
 import static djf.settings.AppPropertyType.LIST_TOOLTIP;
 import static djf.settings.AppPropertyType.MOVE_LABEL_TOOLTIP;
+import static djf.settings.AppPropertyType.REDO_ICON;
+import static djf.settings.AppPropertyType.REDO_TOOLTIP;
 import static djf.settings.AppPropertyType.REMOVE_ICON;
 import static djf.settings.AppPropertyType.REMOVE_TOOLTIP;
 import static djf.settings.AppPropertyType.ROTATE_ICON;
 import static djf.settings.AppPropertyType.ROTATE_TOOLTIP;
+import static djf.settings.AppPropertyType.SAVE_AS_ICON;
+import static djf.settings.AppPropertyType.SAVE_AS_TOOLTIP;
 import static djf.settings.AppPropertyType.SET_IMG_BACK_TOOLTIP;
 import static djf.settings.AppPropertyType.SNAP_TOOLTIP;
+import static djf.settings.AppPropertyType.UNDO_ICON;
+import static djf.settings.AppPropertyType.UNDO_TOOLTIP;
 import static djf.settings.AppPropertyType.ZOOM_IN_ICON;
 import static djf.settings.AppPropertyType.ZOOM_IN_TOOLTIP;
 import static djf.settings.AppPropertyType.ZOOM_OUT_ICON;
 import static djf.settings.AppPropertyType.ZOOM_OUT_TOOLTIP;
+import static djf.settings.AppStartupConstants.FILE_PROTOCOL;
+import static djf.settings.AppStartupConstants.PATH_IMAGES;
+import static djf.ui.AppGUI.CLASS_BORDERED_PANE;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -72,6 +84,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import properties_manager.PropertiesManager;
@@ -92,6 +105,7 @@ import static mmm.css.mmmStyle.CLASS_ROUTE_ROW;
  *
  * @author brendan
  */
+@SuppressWarnings("unchecked")
 public class mmmWorkspace extends AppWorkspaceComponent{
     
     AppTemplate app;
@@ -102,6 +116,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     Button undoButton;
     Button redoButton;
     Button exportButton;
+    Button aboutButton;
+    Button saveAs;
     
     HBox row1Top;
     HBox row1Bottom;
@@ -188,9 +204,26 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     
     public void initLayout(){
         PropertiesManager props = PropertiesManager.getPropertiesManager();
-        FlowPane topRight = gui.getFileToolbar();
-        exportButton = gui.initChildButton(topRight, EXPORT_ICON.toString(), EXPORT_TOOLTIP.toString(), false);
-        topRight.setPrefWrapLength(190);
+        FlowPane fileToolbar = gui.getFileToolbar();
+        FlowPane sp1 = new FlowPane();
+        FlowPane sp2 = new FlowPane();
+        sp1.setPrefWrapLength(100);
+        sp2.setPrefWrapLength(100);
+        saveAs = gui.initChildButton(fileToolbar, SAVE_AS_ICON.toString(), SAVE_AS_TOOLTIP.toString(), false);
+        exportButton = gui.initChildButton(fileToolbar, EXPORT_ICON.toString(), EXPORT_TOOLTIP.toString(), true);
+        fileToolbar.setPrefWrapLength(220);
+        FlowPane topToolBar = gui.getTopToolbarPane();
+        undoRedoToolbar = new FlowPane();
+        undoButton = gui.initChildButton(undoRedoToolbar, UNDO_ICON.toString(), UNDO_TOOLTIP.toString(), true);
+        redoButton = gui.initChildButton(undoRedoToolbar, REDO_ICON.toString(), REDO_TOOLTIP.toString(), true);
+        undoRedoToolbar.setPrefWrapLength(85);
+        aboutToolbar = new FlowPane();
+        aboutButton = gui.initChildButton(aboutToolbar, ABOUT_ICON.toString(), ABOUT_TOOLTIP.toString(), false);
+        aboutToolbar.setPrefWrapLength(40);
+        topToolBar.getChildren().add(sp1);
+        topToolBar.getChildren().add(undoRedoToolbar);
+        topToolBar.getChildren().add(sp2);
+        topToolBar.getChildren().add(aboutToolbar);
         
         editToolbar = new VBox();
         
@@ -200,7 +233,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         linesLabel = new Label("Metro Lines");
         row1Top.getChildren().add(linesLabel);
         lineBox = new ComboBox();
-        lineBox.setValue("                    ");
+        lineBox.setMinWidth(140);
+        lineBox.setPrefWidth(140);
+        lineBox.setMaxWidth(USE_COMPUTED_SIZE);
         row1Top.getChildren().add(lineBox);
         editLineButton = new Button();
         editLineButton.setDisable(false);
@@ -235,7 +270,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         stationsLabel = new Label("Metro Stations");
         row2Top.getChildren().add(stationsLabel);
         stationsBox = new ComboBox();
-        stationsBox.setValue("                    ");
+        stationsBox.setMinWidth(140);
+        stationsBox.setPrefWidth(140);
+        stationsBox.setMaxWidth(USE_COMPUTED_SIZE);
         row2Top.getChildren().add(stationsBox);
         addStationButton = gui.initChildButton(row2Top, ADD_ICON.toString(), ADD_STATION_TOOLTIP.toString() , false);
         removeStationButton = gui.initChildButton(row2Top, REMOVE_ICON.toString(), REMOVE_TOOLTIP.toString() , false);
@@ -247,6 +284,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         snapButton.setTooltip(buttonTooltip);
         snapButton.setText("Snap");
         snapButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        snapButton.setPadding(new Insets(8));
         row2Bottom.getChildren().add(snapButton);
         moveLabelButton = new Button();
         moveLabelButton.setDisable(false);
@@ -254,6 +292,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         moveLabelButton.setTooltip(buttonTooltip);
         moveLabelButton.setText("Move Label");
         moveLabelButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        moveLabelButton.setPadding(new Insets(8));
         row2Bottom.getChildren().add(moveLabelButton);
         rotateButton = gui.initChildButton(row2Top, ROTATE_ICON.toString(), ROTATE_TOOLTIP.toString() , false);
         stationRadiusSlider = new Slider();
@@ -265,10 +304,14 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         routeLabel = new Label("Find Route");
         row3Top.getChildren().add(routeLabel);
         routeBox1 = new ComboBox();
-        routeBox1.setValue("                              ");
+        routeBox1.setMinWidth(140);
+        routeBox1.setPrefWidth(140);
+        routeBox1.setMaxWidth(USE_COMPUTED_SIZE);
         row3Bottom.getChildren().add(routeBox1);
         routeBox2 = new ComboBox();
-        routeBox2.setValue("                              ");
+        routeBox2.setMinWidth(140);
+        routeBox2.setPrefWidth(140);
+        routeBox2.setMaxWidth(USE_COMPUTED_SIZE);
         row3Bottom.getChildren().add(routeBox2);
         findRouteButton = gui.initChildButton(row3Bottom, FIND_ROUTE_ICON.toString(), FIND_ROUTE_TOOLTIP.toString() , false);
         
@@ -351,10 +394,14 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row2VBox.getChildren().add(row2Bottom);
         editToolbar.getChildren().add(row2VBox);
         
-        row3VBox.getChildren().add(row3Top);
+        //row3VBox.getChildren().add(row3Top);
         row3VBox.getChildren().add(row3Bottom);
         editToolbar.getChildren().add(row3VBox);
         
+        Button filler = new Button();
+        filler.setPadding(new Insets(8));
+        filler.setVisible(false);
+        row4Bottom.getChildren().add(filler);
         row4VBox.getChildren().add(row4Top);
         row4VBox.getChildren().add(row4Bottom);
         editToolbar.getChildren().add(row4VBox);
@@ -372,12 +419,21 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         workspace = new BorderPane();
         ((BorderPane)workspace).setLeft(editToolbar);
         ((BorderPane)workspace).setCenter(canvas);
+        controls();
+    }
+    
+    public void controls(){
+        aboutButton.setOnAction(e ->{
+            handleAboutRequest();
+        });
     }
     
     public void initStyle(){
         
         canvas.getStyleClass().add(CLASS_RENDER_CANVAS);
         editToolbar.getStyleClass().add(CLASS_EDIT_TOOLBAR);
+        undoRedoToolbar.getStyleClass().add(CLASS_BORDERED_PANE);
+        aboutToolbar.getStyleClass().add(CLASS_BORDERED_PANE);
         
         //row1Box.getStyleClass().add(CLASS_EDIT_TOOLBAR_ROW);
         row1Top.getStyleClass().add(CLASS_MULTI_HBOX_ROW);
@@ -413,6 +469,31 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         
         stationsLabel.getStyleClass().add(CLASS_COLOR_CHOOSER_CONTROL);
         
+    }
+    
+    public void handleAboutRequest(){
+        
+        PropertiesManager props = PropertiesManager.getPropertiesManager();
+        String appIcon = FILE_PROTOCOL + PATH_IMAGES + props.getProperty(APP_LOGO);
+        Text aboutText = new Text("Application Name: Metro Map Maker\n"
+                                    + "Frameworks Used: DesktopJavaFramework, PropertiesManager, jTPS\n"
+                                    + "Developer: Brendan Kondracki (Frameworks by Richard Mckenna)\n"
+                                    + "Date: November 2017");
+        aboutText.setFont(Font.font("System", FontWeight.BOLD, 18));
+        aboutText.setLayoutY(40);
+        Image i = new Image(appIcon);
+        ImageView v = new ImageView(i);
+        v.setLayoutX(160);
+        v.setLayoutY(170);
+        Pane aboutPane = new Pane();
+        aboutPane.getChildren().add(aboutText);
+        aboutPane.getChildren().add(v);
+        
+        Stage aboutStage = new Stage();
+        Scene aboutScene = new Scene(aboutPane, 600,500);
+        aboutStage.setScene(aboutScene);
+        aboutStage.setTitle("About");
+        aboutStage.showAndWait();
     }
     
     @Override

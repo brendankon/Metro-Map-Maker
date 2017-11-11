@@ -36,6 +36,9 @@ public enum AppPropertyType {
     LIST_ICON,
     INCREASE_SIZE_ICON,
     DECREASE_SIZE_ICON,
+    UNDO_ICON,
+    REDO_ICON,
+    ABOUT_ICON,
     
     
         
@@ -65,6 +68,9 @@ public enum AppPropertyType {
     ADD_LABEL_TOOLTIP,
     INCREASE_SIZE_TOOLTIP,
     DECREASE_SIZE_TOOLTIP,
+    UNDO_TOOLTIP,
+    REDO_TOOLTIP,
+    ABOUT_TOOLTIP,
     
 	
     // ERROR MESSAGES AND TITLES FOR DIALOG BOXES
