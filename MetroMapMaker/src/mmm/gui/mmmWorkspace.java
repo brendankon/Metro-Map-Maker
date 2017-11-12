@@ -209,9 +209,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         FlowPane sp2 = new FlowPane();
         sp1.setPrefWrapLength(100);
         sp2.setPrefWrapLength(100);
-        saveAs = gui.initChildButton(fileToolbar, SAVE_AS_ICON.toString(), SAVE_AS_TOOLTIP.toString(), false);
-        exportButton = gui.initChildButton(fileToolbar, EXPORT_ICON.toString(), EXPORT_TOOLTIP.toString(), true);
-        fileToolbar.setPrefWrapLength(220);
+        saveAs = gui.initChildButton(fileToolbar, SAVE_AS_ICON.toString(), SAVE_AS_TOOLTIP.toString(), true);
+        exportButton = gui.initChildButton(fileToolbar, EXPORT_ICON.toString(), EXPORT_TOOLTIP.toString(), false);
+        fileToolbar.setPrefWrapLength(235);
         FlowPane topToolBar = gui.getTopToolbarPane();
         undoRedoToolbar = new FlowPane();
         undoButton = gui.initChildButton(undoRedoToolbar, UNDO_ICON.toString(), UNDO_TOOLTIP.toString(), true);
@@ -243,6 +243,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         editLineButton.setTooltip(buttonTooltip);
         editLineButton.setText("Edit Line");
         editLineButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        editLineButton.setMinSize(70,23);
+        editLineButton.setPrefSize(70,23);
+        editLineButton.setMaxSize(70,23);
         row1Top.getChildren().add(editLineButton);
         addLineButton = gui.initChildButton(row1Top, ADD_ICON.toString(), ADD_LINE_TOOLTIP.toString(), false);
         removeLineButton = gui.initChildButton(row1Top, REMOVE_ICON.toString(), REMOVE_TOOLTIP.toString(), false);
@@ -252,6 +255,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         addStationToLineButton.setTooltip(buttonTooltip);
         addStationToLineButton.setText("Add Station");
         addStationToLineButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        addStationToLineButton.setMinSize(85,23);
+        addStationToLineButton.setPrefSize(85,23);
+        addStationToLineButton.setMaxSize(85,23);
         row1Bottom.getChildren().add(addStationToLineButton);
         removeStationFromLineButton = new Button();
         removeStationFromLineButton.setDisable(false);
@@ -259,6 +265,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         removeStationFromLineButton.setTooltip(buttonTooltip);
         removeStationFromLineButton.setText("Remove Station");
         removeStationFromLineButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        removeStationFromLineButton.setMinSize(100,23);
+        removeStationFromLineButton.setPrefSize(100,23);
+        removeStationFromLineButton.setMaxSize(100,23);
         row1Bottom.getChildren().add(removeStationFromLineButton);
         listStationsButton = gui.initChildButton(row1Bottom, LIST_ICON.toString(), LIST_TOOLTIP.toString(), false);
         lineThicknessSlider = new Slider();
@@ -284,7 +293,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         snapButton.setTooltip(buttonTooltip);
         snapButton.setText("Snap");
         snapButton.setFont(Font.font("System", FontWeight.BOLD, 11));
-        snapButton.setPadding(new Insets(8));
+        snapButton.setMinSize(50,30);
+        snapButton.setPrefSize(50,30);
+        snapButton.setMaxSize(50,30);
         row2Bottom.getChildren().add(snapButton);
         moveLabelButton = new Button();
         moveLabelButton.setDisable(false);
@@ -292,7 +303,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         moveLabelButton.setTooltip(buttonTooltip);
         moveLabelButton.setText("Move Label");
         moveLabelButton.setFont(Font.font("System", FontWeight.BOLD, 11));
-        moveLabelButton.setPadding(new Insets(8));
+        moveLabelButton.setMinSize(80,30);
+        moveLabelButton.setPrefSize(80,30);
+        moveLabelButton.setMaxSize(80,30);
         row2Bottom.getChildren().add(moveLabelButton);
         rotateButton = gui.initChildButton(row2Top, ROTATE_ICON.toString(), ROTATE_TOOLTIP.toString() , false);
         stationRadiusSlider = new Slider();
@@ -326,6 +339,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         setImgBackgroundButton.setTooltip(buttonTooltip);
         setImgBackgroundButton.setText("Set Image" + "\n" + "Background");
         setImgBackgroundButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        setImgBackgroundButton.setMinSize(80,40);
+        setImgBackgroundButton.setPrefSize(80,40);
+        setImgBackgroundButton.setMaxSize(80,40);
         row4Bottom.getChildren().add(setImgBackgroundButton);
         addImageButton = new Button();
         addImageButton.setDisable(false);
@@ -333,6 +349,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         addImageButton.setTooltip(buttonTooltip);
         addImageButton.setText("Add" + "\n" + "Image");
         addImageButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        addImageButton.setMinSize(55,40);
+        addImageButton.setPrefSize(55,40);
+        addImageButton.setMaxSize(55,40);
         row4Bottom.getChildren().add(addImageButton);
         addLabelButton = new Button();
         addLabelButton.setDisable(false);
@@ -340,6 +359,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         addLabelButton.setTooltip(buttonTooltip);
         addLabelButton.setText("Add" + "\n" + "Label");
         addLabelButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        addLabelButton.setMinSize(50,40);
+        addLabelButton.setPrefSize(50,40);
+        addLabelButton.setMaxSize(50,40);
         row4Bottom.getChildren().add(addLabelButton);
         removeElementButton = new Button();
         removeElementButton.setDisable(false);
@@ -347,6 +369,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         removeElementButton.setTooltip(buttonTooltip);
         removeElementButton.setText("Remove" + "\n" + "Element");
         removeElementButton.setFont(Font.font("System", FontWeight.BOLD, 11));
+        removeElementButton.setMinSize(65,40);
+        removeElementButton.setPrefSize(65,40);
+        removeElementButton.setMaxSize(65,40);
         row4Bottom.getChildren().add(removeElementButton);
         setBackgroundColorPicker = new ColorPicker();
         row4Bottom.getChildren().add(setBackgroundColorPicker);
@@ -394,14 +419,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row2VBox.getChildren().add(row2Bottom);
         editToolbar.getChildren().add(row2VBox);
         
-        //row3VBox.getChildren().add(row3Top);
         row3VBox.getChildren().add(row3Bottom);
         editToolbar.getChildren().add(row3VBox);
         
-        Button filler = new Button();
-        filler.setPadding(new Insets(8));
-        filler.setVisible(false);
-        row4Bottom.getChildren().add(filler);
         row4VBox.getChildren().add(row4Top);
         row4VBox.getChildren().add(row4Bottom);
         editToolbar.getChildren().add(row4VBox);
@@ -413,7 +433,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row6VBox.getChildren().add(row6Top);
         row6VBox.getChildren().add(row6Bottom);
         editToolbar.getChildren().add(row6VBox);
-        
+
         canvas = new Pane();
         
         workspace = new BorderPane();
@@ -425,6 +445,10 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     public void controls(){
         aboutButton.setOnAction(e ->{
             handleAboutRequest();
+        });
+        
+        exportButton.setOnAction(e ->{
+            handleExportRequest();
         });
     }
     
@@ -456,12 +480,6 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row6VBox.getStyleClass().add(CLASS_EDIT_TOOLBAR_ROW);
         
         linesLabel.getStyleClass().add(CLASS_COLOR_CHOOSER_CONTROL);
-        editLineButton.getStyleClass().add(CLASS_BUTTON);
-        addLineButton.getStyleClass().add(CLASS_BUTTON);
-        removeLineButton.getStyleClass().add(CLASS_BUTTON);
-        addStationToLineButton.getStyleClass().add(CLASS_BUTTON);
-        removeStationFromLineButton.getStyleClass().add(CLASS_BUTTON);
-        listStationsButton.getStyleClass().add(CLASS_BUTTON);
         decorLabel.getStyleClass().add(CLASS_COLOR_CHOOSER_CONTROL);
         fontLabel.getStyleClass().add(CLASS_COLOR_CHOOSER_CONTROL);
         routeLabel.getStyleClass().add(CLASS_COLOR_CHOOSER_CONTROL);
@@ -490,10 +508,33 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         aboutPane.getChildren().add(v);
         
         Stage aboutStage = new Stage();
-        Scene aboutScene = new Scene(aboutPane, 600,500);
+        Scene aboutScene = new Scene(aboutPane, 635,500);
         aboutStage.setScene(aboutScene);
         aboutStage.setTitle("About");
         aboutStage.showAndWait();
+    }
+    
+    public void handleExportRequest(){
+        Text t = new Text("Map Exported Successfully");
+        Button ok = new Button("OK");
+        Pane exportPane = new Pane();
+        t.setLayoutX(20);
+        t.setLayoutY(50);
+        ok.setLayoutX(75);
+        ok.setLayoutY(75);
+        exportPane.getChildren().add(t);
+        exportPane.getChildren().add(ok);
+        
+        Stage exportStage = new Stage();
+        Scene exportScene = new Scene(exportPane, 175,150);
+        exportStage.setScene(exportScene);
+        exportStage.setTitle("Export");
+        exportStage.show();
+        
+        ok.setOnAction(e ->{
+            exportStage.close();
+        });
+        
     }
     
     @Override
