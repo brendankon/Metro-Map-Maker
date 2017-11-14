@@ -262,7 +262,11 @@ public class AppGUI {
             link.setFont(Font.font("System", 14));
             link.setOnAction(e ->{
                 try {
-                primaryStage.setOnCloseRequest(null);
+                        
+                primaryStage.setOnCloseRequest(e1->{
+                    e1.consume();
+                    fileController.handleExitRequest();
+                });
                 initWindow();
                 // RESET THE WORKSPACE
 		app.getWorkspaceComponent().resetWorkspace();
@@ -282,7 +286,6 @@ public class AppGUI {
                 initStylesheet(app);
                 
             } catch (Exception x) {
-                System.out.println(x.toString());
                 AppMessageDialogSingleton dialog = AppMessageDialogSingleton.getSingleton();
                 dialog.show(props.getProperty(LOAD_ERROR_TITLE), props.getProperty(LOAD_ERROR_MESSAGE));
             }
@@ -305,8 +308,11 @@ public class AppGUI {
         createLink.setFont(Font.font("System", 16));
         createLink.setLayoutX(270);
         createLink.setLayoutY(540);
-        createLink.setOnAction(e ->{
-            primaryStage.setOnCloseRequest(null);
+        createLink.setOnAction(e ->{                    
+            primaryStage.setOnCloseRequest(e1->{
+                e1.consume();
+                fileController.handleExitRequest();
+            });
             initWindow();
             initStylesheet(app);
             fileController.handleNewRequest();
@@ -327,7 +333,10 @@ public class AppGUI {
             e.consume();
             initWindow();
             initStylesheet(app);
-            primaryStage.setOnCloseRequest(null);
+            primaryStage.setOnCloseRequest(e2->{
+                e2.consume();
+                fileController.handleExitRequest();
+            });
         });
       
     }

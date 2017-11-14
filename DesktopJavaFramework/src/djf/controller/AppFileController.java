@@ -113,7 +113,6 @@ public class AppFileController {
                     if(success){
                         
                         File file = new File(PATH_WORK + "/" + input.get());
-                        System.out.println(file);
                         file.createNewFile();
                         
                         app.getWorkspaceComponent().resetWorkspace();
@@ -366,7 +365,6 @@ public class AppFileController {
                 saved = true;
                 app.getGUI().updateToolbarControls(saved);
             } catch (Exception e) {
-                System.out.println(e.toString());
                 AppMessageDialogSingleton dialog = AppMessageDialogSingleton.getSingleton();
                 dialog.show(props.getProperty(LOAD_ERROR_TITLE), props.getProperty(LOAD_ERROR_MESSAGE));
             }
