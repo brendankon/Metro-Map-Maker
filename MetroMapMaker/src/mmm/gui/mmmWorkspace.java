@@ -100,6 +100,7 @@ import static mmm.css.mmmStyle.CLASS_NAV_BOTTOM_ROW;
 import static mmm.css.mmmStyle.CLASS_NAV_LABEL;
 import static mmm.css.mmmStyle.CLASS_RENDER_CANVAS;
 import static mmm.css.mmmStyle.CLASS_ROUTE_ROW;
+import mmm.data.Station;
 
 /**
  *
@@ -123,7 +124,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     HBox row1Bottom;
     VBox row1VBox;
     Label linesLabel;
-    ComboBox lineBox;
+    ComboBox<String> lineBox;
     Button addLineButton;
     Button removeLineButton;
     Button addStationToLineButton;
@@ -136,7 +137,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     HBox row2Bottom;
     VBox row2VBox;
     Label stationsLabel;
-    ComboBox stationsBox;
+    ComboBox<String> stationsBox;
     Button addStationButton;
     Button removeStationButton;
     Button snapButton;
@@ -149,8 +150,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     HBox row3Bottom;
     VBox row3VBox;
     Label routeLabel;
-    ComboBox routeBox1;
-    ComboBox routeBox2;
+    ComboBox<String> routeBox1;
+    ComboBox<String> routeBox2;
     Button findRouteButton;
     
     HBox row4Top;
@@ -187,6 +188,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     Pane canvas;
     AppMessageDialogSingleton messageDialog;
     AppYesNoCancelDialogSingleton yesNoCancelDialog;
+    CanvasController canvasController;
+    
+    mapEditController controller;
     
     
     
@@ -232,7 +236,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row1VBox = new VBox();     
         linesLabel = new Label("Metro Lines");
         row1Top.getChildren().add(linesLabel);
-        lineBox = new ComboBox();
+        lineBox = new ComboBox<>();
         lineBox.setMinWidth(140);
         lineBox.setPrefWidth(140);
         lineBox.setMaxWidth(USE_COMPUTED_SIZE);
@@ -278,7 +282,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row2VBox = new VBox();
         stationsLabel = new Label("Metro Stations");
         row2Top.getChildren().add(stationsLabel);
-        stationsBox = new ComboBox();
+        stationsBox = new ComboBox<>();
         stationsBox.setMinWidth(140);
         stationsBox.setPrefWidth(140);
         stationsBox.setMaxWidth(USE_COMPUTED_SIZE);
@@ -316,12 +320,12 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row3VBox = new VBox();
         routeLabel = new Label("Find Route");
         row3Top.getChildren().add(routeLabel);
-        routeBox1 = new ComboBox();
+        routeBox1 = new ComboBox<>();
         routeBox1.setMinWidth(140);
         routeBox1.setPrefWidth(140);
         routeBox1.setMaxWidth(USE_COMPUTED_SIZE);
         row3Bottom.getChildren().add(routeBox1);
-        routeBox2 = new ComboBox();
+        routeBox2 = new ComboBox<>();
         routeBox2.setMinWidth(140);
         routeBox2.setPrefWidth(140);
         routeBox2.setMaxWidth(USE_COMPUTED_SIZE);
@@ -440,9 +444,27 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         ((BorderPane)workspace).setLeft(editToolbar);
         ((BorderPane)workspace).setCenter(canvas);
         controls();
+        
+        mmmData data = (mmmData)app.getDataComponent();
+        data.setShapes(canvas.getChildren());
+    }
+    
+    public Pane getCanvas(){
+        return canvas;
+    }
+    
+    public void setLineBox(String s){
+        lineBox.getItems().add(s);
+    }
+    
+    public void setStationBox(String s){
+        stationsBox.getItems().add(s);
     }
     
     public void controls(){
+        controller = new mapEditController(app);
+        mmmData data = (mmmData)app.getDataComponent();
+        
         aboutButton.setOnAction(e ->{
             handleAboutRequest();
         });
@@ -450,6 +472,81 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         exportButton.setOnAction(e ->{
             handleExportRequest();
         });
+        
+        addLineButton.setOnAction(e ->{
+            controller.processNewLineRequest();
+        });
+        
+        addStationButton.setOnAction(e ->{
+            controller.processNewStationRequest();
+        });
+        
+        addStationToLineButton.setOnAction(e ->{
+            controller.processAddStationToLineRequest();
+        });
+        
+        removeStationFromLineButton.setOnAction(e ->{
+            controller.processRemoveStationFromLineRequest();
+        });
+        
+        removeLineButton.setOnAction(e ->{
+            controller.processRemoveLineRequest();
+        });
+        
+        removeStationButton.setOnAction(e ->{
+           controller.processRemoveStationRequest(); 
+        });
+        
+        editLineButton.setOnAction(e ->{
+           controller.processEditLineRequest();
+        });
+        
+        lineBox.valueProperty().addListener(new ChangeListener<String>(){
+            @Override
+            public void changed(ObservableValue ov, String t, String t1){
+                
+                for(int i = 0; i < data.getMetroLines().size(); i++){
+                    if(t1.equals(data.getMetroLines().get(i).getName())){
+                        data.selectTopShape((int)data.getMetroLines().get(i).getLines().get(0).getStartX(), (int)data.getMetroLines().get(i).getLines().get(0).getStartY());
+                        
+                        for(int j = 0; j < data.getMetroLines().get(i).getLines().size(); j++){
+                            data.highlightShape(data.getMetroLines().get(i).getLines().get(j));
+                        }
+                    }
+                }
+            }
+        });
+        
+        stationsBox.valueProperty().addListener(new ChangeListener<String>(){
+            @Override
+            public void changed(ObservableValue ov, String t, String t1){
+                
+                for(int i = 0; i < data.getShapes().size(); i++){
+                    if(data.getShapes().get(i) instanceof Station){
+                        if(((Station)data.getShapes().get(i)).getName().equals(t1)){
+                            data.selectTopShape((int)((Station)data.getShapes().get(i)).getCenterX(), (int)((Station)data.getShapes().get(i)).getCenterY());
+                        }
+                    }
+                }
+               
+            }
+        });
+        
+        // MAKE THE CANVAS CONTROLLER	
+	canvasController = new CanvasController(app);
+	canvas.setOnMousePressed(e->{
+	    canvasController.processCanvasMousePress((int)e.getX(), (int)e.getY());
+	});
+	canvas.setOnMouseReleased(e->{
+	    canvasController.processCanvasMouseRelease((int)e.getX(), (int)e.getY());
+	});
+	canvas.setOnMouseDragged(e->{
+	    canvasController.processCanvasMouseDragged((int)e.getX(), (int)e.getY());
+	});
+    }
+    
+    public void loadSelectedShapeSettings(Shape shape){
+
     }
     
     public void initStyle(){
