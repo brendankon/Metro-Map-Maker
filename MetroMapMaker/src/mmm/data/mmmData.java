@@ -32,6 +32,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import static mmm.data.mmmState.SELECTING_SHAPE;
 
 /**
  *
@@ -90,6 +91,7 @@ public class mmmData implements AppDataComponent{
 	currentFillColor = Color.web(WHITE_HEX);
 	currentOutlineColor = Color.web(BLACK_HEX);
 	currentBorderWidth = 1;
+        backgroundColor = (Color)DEFAULT_BACKGROUND_COLOR;
 	
 	// THIS IS FOR THE SELECTED SHAPE
 	DropShadow dropShadowEffect = new DropShadow();
@@ -136,6 +138,11 @@ public class mmmData implements AppDataComponent{
 	return currentBorderWidth;
     }
     
+    public mmmWorkspace getWorkspace(){
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        return workspace;
+    }
+    
     public void setShapes(ObservableList<Node> initShapes) {
 	shapes = initShapes;
     }
@@ -169,6 +176,15 @@ public class mmmData implements AppDataComponent{
     
     public void setSelectedShape(Shape initSelectedShape) {
 	selectedShape = initSelectedShape;
+    }
+    
+    public void setBackgroundColor(Color initBackgroundColor) {
+	backgroundColor = initBackgroundColor;
+	mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+	Pane canvas = workspace.getCanvas();
+	BackgroundFill fill = new BackgroundFill(backgroundColor, null, null);
+	Background background = new Background(fill);
+	canvas.setBackground(background);
     }
     
     public Shape selectTopShape(int x, int y) {
@@ -231,6 +247,19 @@ public class mmmData implements AppDataComponent{
      
     @Override
     public void resetData() {
-        
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        workspace.resetLineBox();
+        workspace.resetStationBox();
+        setState(SELECTING_SHAPE);
+	newShape = null;
+	selectedShape = null;
+
+	// INIT THE COLORS
+	currentFillColor = Color.web(WHITE_HEX);
+	currentOutlineColor = Color.web(BLACK_HEX);
+	
+        metroLines.clear();
+	shapes.clear();
+	((mmmWorkspace)app.getWorkspaceComponent()).getCanvas().getChildren().clear();
     }
 }

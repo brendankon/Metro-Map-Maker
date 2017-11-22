@@ -82,6 +82,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
@@ -440,6 +442,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
 
         canvas = new Pane();
         
+        
         workspace = new BorderPane();
         ((BorderPane)workspace).setLeft(editToolbar);
         ((BorderPane)workspace).setCenter(canvas);
@@ -459,6 +462,16 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     
     public void setStationBox(String s){
         stationsBox.getItems().add(s);
+    }
+    
+    public void resetLineBox(){
+        lineBox.getItems().removeAll(lineBox.getItems());
+        lineBox.setValue("");
+    }
+    
+    public void resetStationBox(){
+        stationsBox.getItems().removeAll(stationsBox.getItems());
+        stationsBox.setValue("");
     }
     
     public void controls(){
@@ -505,12 +518,15 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             @Override
             public void changed(ObservableValue ov, String t, String t1){
                 
-                for(int i = 0; i < data.getMetroLines().size(); i++){
-                    if(t1.equals(data.getMetroLines().get(i).getName())){
-                        data.selectTopShape((int)data.getMetroLines().get(i).getLines().get(0).getStartX(), (int)data.getMetroLines().get(i).getLines().get(0).getStartY());
-                        
-                        for(int j = 0; j < data.getMetroLines().get(i).getLines().size(); j++){
-                            data.highlightShape(data.getMetroLines().get(i).getLines().get(j));
+                if(t1 != null && !t1.equals("")){
+                    stationsBox.setValue("");
+                    for(int i = 0; i < data.getMetroLines().size(); i++){
+                        if(t1.equals(data.getMetroLines().get(i).getName())){
+                            data.selectTopShape((int)data.getMetroLines().get(i).getLines().get(0).getStartX(), (int)data.getMetroLines().get(i).getLines().get(0).getStartY());
+
+                            for(int j = 0; j < data.getMetroLines().get(i).getLines().size(); j++){
+                                data.highlightShape(data.getMetroLines().get(i).getLines().get(j));
+                            }
                         }
                     }
                 }
@@ -521,14 +537,17 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             @Override
             public void changed(ObservableValue ov, String t, String t1){
                 
-                for(int i = 0; i < data.getShapes().size(); i++){
-                    if(data.getShapes().get(i) instanceof Station){
-                        if(((Station)data.getShapes().get(i)).getName().equals(t1)){
-                            data.selectTopShape((int)((Station)data.getShapes().get(i)).getCenterX(), (int)((Station)data.getShapes().get(i)).getCenterY());
+                if(t1 != null && !t1.equals("")){
+                    lineBox.setValue("");
+                    for(int i = 0; i < data.getShapes().size(); i++){
+                        if(data.getShapes().get(i) instanceof Station){
+                            if(((Station)data.getShapes().get(i)).getName().equals(t1)){
+                                data.selectTopShape((int)((Station)data.getShapes().get(i)).getCenterX(), (int)((Station)data.getShapes().get(i)).getCenterY());
+                            }
                         }
                     }
+
                 }
-               
             }
         });
         

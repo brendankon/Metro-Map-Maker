@@ -11,6 +11,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Text;
 import mmm.data.Draggable;
 import static mmm.data.Draggable.ELLIPSE;
 import static mmm.data.Draggable.TEXT;
@@ -53,6 +54,7 @@ public class CanvasController {
                 
                 // AND START DRAGGING IT
                 if(shape instanceof Line){
+                    workspace.stationsBox.setValue("");
                     for(int i = 0; i < dataManager.getMetroLines().size(); i++){
                         for(int j = 0; j < dataManager.getMetroLines().get(i).getLines().size(); j++){
                             if(dataManager.getMetroLines().get(i).getLines().get(j) == (Line)shape){
@@ -66,10 +68,15 @@ public class CanvasController {
                 }
 
                 else if (shape != null) {
-                                    
+                    
+                    workspace.lineBox.setValue("");
                     if(shape instanceof Station){
-                        if(!workspace.stationsBox.getValue().equals(((Station)shape).getName()))
+                        if(workspace.stationsBox.getValue() == null || !workspace.stationsBox.getValue().equals(((Station)shape).getName()))
                             workspace.stationsBox.setValue(((Station)shape).getName());
+                    }
+                    
+                    if(shape instanceof Text){
+                        workspace.stationsBox.setValue("");
                     }
                     
                     scene.setCursor(Cursor.MOVE);
@@ -77,6 +84,8 @@ public class CanvasController {
                     app.getGUI().updateToolbarControls(false); 
 
                 } else {
+                    workspace.lineBox.setValue("");
+                    workspace.stationsBox.setValue("");
                     scene.setCursor(Cursor.DEFAULT);
                     dataManager.setState(DRAGGING_NOTHING);
                     app.getWorkspaceComponent().reloadWorkspace(dataManager);

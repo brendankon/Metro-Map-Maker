@@ -159,7 +159,7 @@ public class mapEditController {
             Text t = new Text(name);
             t.setFont(Font.font("System", 14));
             t.xProperty().bind(s.centerXProperty().add(30));
-            t.yProperty().bind(s.centerYProperty());
+            t.yProperty().bind(s.centerYProperty().subtract(20));
             s.setLabel(t);
             
             dataManager.addShape(s);
