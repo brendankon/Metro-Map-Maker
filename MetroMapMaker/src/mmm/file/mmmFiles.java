@@ -1,5 +1,6 @@
 package mmm.file;
 
+import djf.AppTemplate;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,16 +17,24 @@ import javafx.scene.shape.Shape;
 import djf.components.AppDataComponent;
 import djf.components.AppFileComponent;
 import djf.components.AppWorkspaceComponent;
+import djf.ui.AppGUI;
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.SnapshotParameters;
 import mmm.data.mmmData;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.layout.Pane;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javax.imageio.ImageIO;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -73,12 +82,16 @@ public class mmmFiles implements AppFileComponent{
     static final String JSON_LINES_ARRAY = "lines_array";
     static final String JSON_STATIONS_ARRAY = "stations_array";
     static final String JSON_NAME = "name";
-    static final String JSON_METRO_LINES = "metro_lines";
+    static final String JSON_METRO_LINES = "lines";
     static final String JSON_STATIONS_OFF_LINE = "stations_off_line";
     static final String JSON_TOP_LABEL_X = "top_label_x";
     static final String JSON_TOP_LABEL_Y = "top_label_y";
     static final String JSON_BOTTOM_LABEL_X = "bottom_label_x";
     static final String JSON_BOTTOM_LABEL_Y = "bottom_label_y";
+    static final String JSON_STATION_NAMES = "station_names";
+    static final String JSON_CIRCULAR = "circular";
+    static final String JSON_COLOR = "color";
+    static final String JSON_STATIONS = "stations";
     
     static final String DEFAULT_DOCTYPE_DECLARATION = "<!doctype html>\n";
     static final String DEFAULT_ATTRIBUTE_VALUE = "";
@@ -211,8 +224,9 @@ public class mmmFiles implements AppFileComponent{
     public void loadData(AppDataComponent data, String filePath) throws IOException {
         
         mmmData dataManager = (mmmData)data;
+        dataManager.resetData();
         mmmWorkspace workspace = dataManager.getWorkspace();
-	dataManager.resetData();
+	
         
         JsonObject json = loadJSONFile(filePath);
         
@@ -228,6 +242,8 @@ public class mmmFiles implements AppFileComponent{
             String name = line.getName();
             dataManager.addShape(line.getTopLabel());
             dataManager.addShape(line.getBottomLabel());
+            dataManager.addMetroLine(line);
+            dataManager.getMetroLines().remove(dataManager.getMetroLines().size()-1);
             
             for(int x = 0; x < line.getLines().size(); x++){
                 
@@ -279,6 +295,8 @@ public class mmmFiles implements AppFileComponent{
             dataManager.addShape(s.getLabel());
             workspace.setStationBox(s.getName());
         }
+        
+        stationsList = new ArrayList<>();
     }
     
     private MetroLine loadMetroLine(JsonObject obj, mmmData data){
@@ -294,6 +312,7 @@ public class mmmFiles implements AppFileComponent{
         }
         
         JsonArray stationArray = obj.getJsonArray(JSON_STATIONS_ARRAY);
+        System.out.println(stationArray.size());
         for(int j = 0; j < stationArray.size(); j++){
             Station s = loadStation(stationArray.getJsonObject(j), data);
             for(int l = 0; l < stationsList.size(); l++){
@@ -308,6 +327,8 @@ public class mmmFiles implements AppFileComponent{
                 metroLine.addStation(s);
                 stationsList.add(s);
             }
+            else
+                isInList = false;
         }
         
         DraggableText topLabel = new DraggableText(name, 18);
@@ -396,10 +417,103 @@ public class mmmFiles implements AppFileComponent{
     }
     
     @Override
-    public void exportData(AppDataComponent data, String filePath) throws IOException {
-        // WE ARE NOT USING THIS, THOUGH PERHAPS WE COULD FOR EXPORTING
-        // IMAGES TO VARIOUS FORMATS, SOMETHING OUT OF THE SCOPE
-        // OF THIS ASSIGNMENT
+    public void exportData(AppDataComponent data, String filePath, AppTemplate app) throws IOException {
+        
+        mmmData dataManager = (mmmData)data;
+        AppGUI gui = app.getGUI();
+        if(gui.getCurrentFile() != null){
+            
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            Pane canvas = workspace.getCanvas();
+            WritableImage image = canvas.snapshot(new SnapshotParameters(), null);
+            File file = new File(filePath + "/" + gui.getCurrentFile().getName() + ".png");
+            try {
+                ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+            }
+            catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+            
+            
+            JsonArrayBuilder stationsArray = Json.createArrayBuilder();
+            JsonArrayBuilder linesArray = Json.createArrayBuilder();
+            
+            for(int i = 0; i < dataManager.getMetroLines().size(); i++){
+                for(int j = 0; j < dataManager.getMetroLines().get(i).getStations().size(); j++){
+                    stationsArray.add(dataManager.getMetroLines().get(i).getStations().get(j).getName());
+                }
+                
+                String lineName = dataManager.getMetroLines().get(i).getName();
+                boolean isCircular = false;
+                Color lineColor = (Color)dataManager.getMetroLines().get(i).getLines().get(0).getStroke();
+                JsonObject lineColorJson = makeJsonColorObject(lineColor);
+                JsonObject lineObject = Json.createObjectBuilder()
+                        .add(JSON_NAME, lineName)
+                        .add(JSON_CIRCULAR, isCircular)
+                        .add(JSON_COLOR, lineColorJson)
+                        .add(JSON_STATION_NAMES, stationsArray).build();
+                linesArray.add(lineObject);
+                
+                stationsArray = Json.createArrayBuilder();
+            }
+            
+            for(int i = 0; i < dataManager.getMetroLines().size(); i++){
+                for(int j = 0; j < dataManager.getMetroLines().get(i).getStations().size(); j++){
+                    Station station = dataManager.getMetroLines().get(i).getStations().get(j);
+                    String name = station.getName();
+                    double x = station.getCenterX();
+                    double y = station.getCenterY();
+                    JsonObject stationJson = Json.createObjectBuilder()
+                            .add(JSON_NAME, name)
+                            .add(JSON_X, x)
+                            .add(JSON_Y, y).build();
+                    stationsArray.add(stationJson);
+                }
+            }
+            
+            for(int i = 0; i < dataManager.getShapes().size(); i++){
+                if(dataManager.getShapes().get(i) instanceof Station){
+                    for(int j = 0; j < dataManager.getMetroLines().size(); j++){
+                        if(!dataManager.getMetroLines().get(j).getStations().contains((Station)dataManager.getShapes().get(i))){
+                            
+                            Station station = (Station)dataManager.getShapes().get(i);
+                            String name = station.getName();
+                            double x = station.getCenterX();
+                            double y = station.getCenterY();
+                            JsonObject stationJson = Json.createObjectBuilder()
+                                    .add(JSON_NAME, name)
+                                    .add(JSON_X, x)
+                                    .add(JSON_Y, y).build();
+                            stationsArray.add(stationJson);
+                        }
+                    }
+                }
+            }
+            
+            String projectName = gui.getCurrentFile().getName();
+            JsonObject projectJson = Json.createObjectBuilder()
+                    .add(JSON_NAME, projectName)
+                    .add(JSON_METRO_LINES, linesArray)
+                    .add(JSON_STATIONS, stationsArray).build();
+            
+            
+            Map<String, Object> properties = new HashMap<>(1);
+            properties.put(JsonGenerator.PRETTY_PRINTING, true);
+            JsonWriterFactory writerFactory = Json.createWriterFactory(properties);
+            StringWriter sw = new StringWriter();
+            JsonWriter jsonWriter = writerFactory.createWriter(sw);
+            jsonWriter.writeObject(projectJson);
+            jsonWriter.close();
+
+            // INIT THE WRITER
+            OutputStream os = new FileOutputStream(filePath + "/" + gui.getCurrentFile().getName());
+            JsonWriter jsonFileWriter = Json.createWriter(os);
+            jsonFileWriter.writeObject(projectJson);
+            String prettyPrinted = sw.toString();
+            PrintWriter pw = new PrintWriter(filePath + "/" + gui.getCurrentFile().getName());
+            pw.write(prettyPrinted);
+            pw.close();  
+        }
     }
 
     @Override

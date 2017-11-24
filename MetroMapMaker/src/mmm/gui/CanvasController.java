@@ -6,6 +6,7 @@
 package mmm.gui;
 
 import djf.AppTemplate;
+import djf.controller.AppFileController;
 import java.util.ArrayList;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
@@ -99,9 +100,10 @@ public class CanvasController {
                 Shape shape = dataManager.selectTopShape(x, y);
                 Scene scene = app.getGUI().getPrimaryScene();
                 
-                if(shape != null){
+                if(shape != null){ 
                     if(shape instanceof Station){
                         controller.addToLine((Station)shape, dataManager.getSelectedLine());
+                        app.getGUI().updateToolbarControls(false);
                     }
                     
                     else {
@@ -125,8 +127,10 @@ public class CanvasController {
                 
                 if(shape != null){
                     if(shape instanceof Station){
-                        if(((Station)shape).getMetroLines().contains(dataManager.getSelectedLine()))
+                        if(((Station)shape).getMetroLines().contains(dataManager.getSelectedLine())){
                             controller.removeFromLine((Station)shape, dataManager.getSelectedLine());
+                            app.getGUI().updateToolbarControls(false); 
+                        }
                     }
                     
                     else {

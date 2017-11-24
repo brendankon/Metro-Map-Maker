@@ -77,6 +77,8 @@ public class AppGUI {
     // THIS TITLE WILL GO IN THE TITLE BAR
     protected String appTitle;
     
+    File currentFile;
+    
     /**
      * This constructor initializes the file toolbar for use.
      * 
@@ -164,7 +166,10 @@ public class AppGUI {
     public void updateToolbarControls(boolean saved) {
         // THIS TOGGLES WITH WHETHER THE CURRENT COURSE
         // HAS BEEN SAVED OR NOT
+        fileController = new AppFileController(app);
         saveButton.setDisable(saved);
+        fileController.setSaved(saved);
+        fileController.setCurrentFile(currentFile);
 
         // ALL THE OTHER BUTTONS ARE ALWAYS ENABLED
         // ONCE EDITING THAT FIRST COURSE BEGINS
@@ -282,6 +287,8 @@ public class AppGUI {
                 
                 // AND MAKE SURE THE FILE BUTTONS ARE PROPERLY ENABLED
                 fileController.setSaved(true);
+                fileController.setCurrentFile(file);
+                currentFile = file;
                 app.getGUI().updateToolbarControls(fileController.isSaved());
                 initStylesheet(app);
                 
@@ -455,5 +462,17 @@ public class AppGUI {
 	loadButton.getStyleClass().add(CLASS_FILE_BUTTON);
 	saveButton.getStyleClass().add(CLASS_FILE_BUTTON);
 	exitButton.getStyleClass().add(CLASS_FILE_BUTTON);
+    }
+    
+    public void setCurrentFile(File file){
+        currentFile = file;
+    }
+    
+    public File getCurrentFile(){
+        return currentFile;
+    }
+    
+    public Stage getPrimaryStage(){
+        return primaryStage;
     }
 }

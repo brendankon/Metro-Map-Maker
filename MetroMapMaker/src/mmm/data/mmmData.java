@@ -248,11 +248,11 @@ public class mmmData implements AppDataComponent{
     @Override
     public void resetData() {
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-        workspace.resetLineBox();
-        workspace.resetStationBox();
         setState(SELECTING_SHAPE);
 	newShape = null;
 	selectedShape = null;
+        workspace.resetLineBox();
+        workspace.resetStationBox();
 
 	// INIT THE COLORS
 	currentFillColor = Color.web(WHITE_HEX);

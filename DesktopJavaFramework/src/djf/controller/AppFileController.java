@@ -127,8 +127,9 @@ public class AppFileController {
                         app.getWorkspaceComponent().activateWorkspace(app.getGUI().getAppPane());
 
                         // WORK IS NOT SAVED
-                        saved = false;
+                        saved = true;
                         currentWorkFile = file;
+                        app.getGUI().setCurrentFile(currentWorkFile);
                         
                         // REFRESH THE GUI, WHICH WILL ENABLE AND DISABLE
                         // THE APPROPRIATE CONTROLS
@@ -363,6 +364,8 @@ public class AppFileController {
                 
                 // AND MAKE SURE THE FILE BUTTONS ARE PROPERLY ENABLED
                 saved = true;
+                currentWorkFile = selectedFile;
+                app.getGUI().setCurrentFile(currentWorkFile);
                 app.getGUI().updateToolbarControls(saved);
             } catch (Exception e) {
                 AppMessageDialogSingleton dialog = AppMessageDialogSingleton.getSingleton();
@@ -383,6 +386,14 @@ public class AppFileController {
     
     public void setSaved(boolean b){
         saved = b;
+    }
+    
+    public File getCurrentFile(){
+        return currentWorkFile;
+    }
+    
+    public void setCurrentFile(File file){
+        currentWorkFile = file;
     }
 
     /**

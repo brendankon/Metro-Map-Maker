@@ -64,13 +64,17 @@ import static djf.settings.AppPropertyType.ZOOM_IN_TOOLTIP;
 import static djf.settings.AppPropertyType.ZOOM_OUT_ICON;
 import static djf.settings.AppPropertyType.ZOOM_OUT_TOOLTIP;
 import static djf.settings.AppStartupConstants.FILE_PROTOCOL;
+import static djf.settings.AppStartupConstants.PATH_EXPORT;
 import static djf.settings.AppStartupConstants.PATH_IMAGES;
+import static djf.settings.AppStartupConstants.PATH_WORK;
 import static djf.ui.AppGUI.CLASS_BORDERED_PANE;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
@@ -442,7 +446,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
 
         canvas = new Pane();
         
-        
+        canvas.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
+        canvas.prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
         workspace = new BorderPane();
         ((BorderPane)workspace).setLeft(editToolbar);
         ((BorderPane)workspace).setCenter(canvas);
@@ -483,7 +488,11 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         });
         
         exportButton.setOnAction(e ->{
-            handleExportRequest();
+            try {
+                handleExportRequest();
+            } catch (IOException ex) {
+                Logger.getLogger(mmmWorkspace.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
         
         addLineButton.setOnAction(e ->{
@@ -630,26 +639,39 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         aboutStage.showAndWait();
     }
     
-    public void handleExportRequest(){
-        Text t = new Text("Map Exported Successfully");
-        Button ok = new Button("OK");
-        Pane exportPane = new Pane();
-        t.setLayoutX(20);
-        t.setLayoutY(50);
-        ok.setLayoutX(75);
-        ok.setLayoutY(75);
-        exportPane.getChildren().add(t);
-        exportPane.getChildren().add(ok);
+    public void handleExportRequest() throws IOException{
         
-        Stage exportStage = new Stage();
-        Scene exportScene = new Scene(exportPane, 190,150);
-        exportStage.setScene(exportScene);
-        exportStage.setTitle("Export");
-        exportStage.show();
-        
-        ok.setOnAction(e ->{
-            exportStage.close();
-        });
+        mmmData data = (mmmData)app.getDataComponent();
+        if(app.getGUI().getCurrentFile() != null){
+            File workDir = new File(PATH_EXPORT);
+            File[] files = workDir.listFiles();
+
+            for(int i = 0; i < files.length; i++){
+                if(app.getGUI().getCurrentFile().getName().equals(files[i].getName())){
+                    app.getFileComponent().exportData(data, files[i].getAbsolutePath(), app);
+                }
+            }
+
+            Text t = new Text("Map Exported Successfully");
+            Button ok = new Button("OK");
+            Pane exportPane = new Pane();
+            t.setLayoutX(20);
+            t.setLayoutY(50);
+            ok.setLayoutX(75);
+            ok.setLayoutY(75);
+            exportPane.getChildren().add(t);
+            exportPane.getChildren().add(ok);
+
+            Stage exportStage = new Stage();
+            Scene exportScene = new Scene(exportPane, 190,150);
+            exportStage.setScene(exportScene);
+            exportStage.setTitle("Export");
+            exportStage.show();
+
+            ok.setOnAction(e ->{
+                exportStage.close();
+            });
+        }
         
     }
     
@@ -661,5 +683,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     @Override
     public void resetWorkspace() {
         // WE ARE NOT USING THIS, THOUGH YOU MAY IF YOU LIKE
+    }
+    
+    public void setExportButton(boolean b){
+        exportButton.setDisable(b);
     }
 }
