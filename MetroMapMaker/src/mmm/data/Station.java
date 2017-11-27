@@ -16,6 +16,7 @@ public class Station extends Ellipse implements Draggable{
     double startCenterY;
     ArrayList<MetroLine> metroLines;
     Text label;
+    boolean isEndLabel;
     
     public Station(String name){
         this.name = name;
@@ -109,5 +110,13 @@ public class Station extends Ellipse implements Draggable{
     
     public Text getLabel(){
         return label;
+    }
+    
+    public boolean isEndLabel(){
+        return isEndLabel;
+    }
+    
+    public void setIsEndLabel(boolean b){
+        isEndLabel = b;
     }
 }

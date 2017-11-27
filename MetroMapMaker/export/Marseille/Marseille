@@ -1,0 +1,202 @@
+
+{
+    "name":"Marseille",
+    "lines":[
+        {
+            "name":"Metro 2",
+            "circular":false,
+            "color":{
+                "red":0.9019607901573181,
+                "green":0.3019607961177826,
+                "blue":0.3019607961177826,
+                "alpha":1.0
+            },
+            "station_names":[
+                "Bougainville",
+                "National",
+                "Desiree Clary",
+                "Joliette",
+                "Jules Guesde",
+                "St. Charles",
+                "Noailles",
+                "Notre Dame du Mont",
+                "Castellane",
+                "Perier",
+                "Rond-Point du Prado",
+                "Ste. Marguerite Dromel"
+            ]
+        },
+        {
+            "name":"Metro 1",
+            "circular":false,
+            "color":{
+                "red":0.4000000059604645,
+                "green":0.501960813999176,
+                "blue":0.9019607901573181,
+                "alpha":1.0
+            },
+            "station_names":[
+                "La Fourragere",
+                "St. Barnabe",
+                "Louis Armand",
+                "La Blancarde",
+                "La Timone",
+                "Baille",
+                "Castellane",
+                "Estrangin",
+                "Vieux-Port",
+                "Colbert",
+                "St. Charles",
+                "Reformes",
+                "Cinq Avenues",
+                "Chartreux",
+                "St. Just",
+                "Malpasse",
+                "Frais Vallon",
+                "La Rose"
+            ]
+        }
+    ],
+    "stations":[
+        {
+            "name":"Bougainville",
+            "x":268.0,
+            "y":57.0
+        },
+        {
+            "name":"National",
+            "x":264.0,
+            "y":103.0
+        },
+        {
+            "name":"Desiree Clary",
+            "x":258.0,
+            "y":154.0
+        },
+        {
+            "name":"Joliette",
+            "x":238.0,
+            "y":211.0
+        },
+        {
+            "name":"Jules Guesde",
+            "x":214.0,
+            "y":276.0
+        },
+        {
+            "name":"St. Charles",
+            "x":266.0,
+            "y":322.0
+        },
+        {
+            "name":"Noailles",
+            "x":309.0,
+            "y":411.0
+        },
+        {
+            "name":"Notre Dame du Mont",
+            "x":335.0,
+            "y":465.0
+        },
+        {
+            "name":"Castellane",
+            "x":342.0,
+            "y":546.0
+        },
+        {
+            "name":"Perier",
+            "x":363.0,
+            "y":611.0
+        },
+        {
+            "name":"Rond-Point du Prado",
+            "x":385.0,
+            "y":654.0
+        },
+        {
+            "name":"Ste. Marguerite Dromel",
+            "x":482.0,
+            "y":691.0
+        },
+        {
+            "name":"La Fourragere",
+            "x":966.5,
+            "y":415.0
+        },
+        {
+            "name":"St. Barnabe",
+            "x":841.0,
+            "y":431.0
+        },
+        {
+            "name":"Louis Armand",
+            "x":787.0,
+            "y":506.0
+        },
+        {
+            "name":"La Blancarde",
+            "x":658.0,
+            "y":511.0
+        },
+        {
+            "name":"La Timone",
+            "x":611.0,
+            "y":579.0
+        },
+        {
+            "name":"Baille",
+            "x":495.0,
+            "y":596.0
+        },
+        {
+            "name":"Estrangin",
+            "x":223.0,
+            "y":516.0
+        },
+        {
+            "name":"Vieux-Port",
+            "x":197.0,
+            "y":463.0
+        },
+        {
+            "name":"Colbert",
+            "x":209.0,
+            "y":409.0
+        },
+        {
+            "name":"Reformes",
+            "x":485.0,
+            "y":411.0
+        },
+        {
+            "name":"Cinq Avenues",
+            "x":668.0,
+            "y":389.0
+        },
+        {
+            "name":"Chartreux",
+            "x":732.0,
+            "y":318.0
+        },
+        {
+            "name":"St. Just",
+            "x":805.0,
+            "y":236.0
+        },
+        {
+            "name":"Malpasse",
+            "x":941.0,
+            "y":211.0
+        },
+        {
+            "name":"Frais Vallon",
+            "x":993.0,
+            "y":140.0
+        },
+        {
+            "name":"La Rose",
+            "x":1038.0,
+            "y":81.0
+        }
+    ]
+}

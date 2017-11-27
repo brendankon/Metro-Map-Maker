@@ -102,6 +102,23 @@ public class mapEditController {
             String name = t.getText();
             Color fill = p.getValue();
             
+            for(int i = 0; i < dataManager.getMetroLines().size(); i++){
+                if(dataManager.getMetroLines().get(i).getName().equals(name)){
+                    
+                    Alert alert = new Alert(AlertType.WARNING, "Error: line name already exists. Do you wish to enter a new name?",ButtonType.OK, ButtonType.CANCEL);
+                    alert.setHeaderText("Name Already Exists");
+                    
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if(result.get() == ButtonType.OK){
+                        processNewLineRequest();
+                        return;
+                    }
+                    else if(result.get() == ButtonType.CANCEL){
+                        return;
+                    }
+                }
+            }
+            
             MetroLine line = new MetroLine(name);
             Line startLine = line.getLines().get(0);
             startLine.setStrokeWidth(5);
@@ -152,6 +169,23 @@ public class mapEditController {
         Optional<String> result = dialog.showAndWait();
         
         result.ifPresent(name ->{
+            
+            for(int i = 0; i < dataManager.getShapes().size(); i++){
+                if(dataManager.getShapes().get(i) instanceof Station && ((Station)dataManager.getShapes().get(i)).getName().equals(name)){
+                    
+                    Alert alert = new Alert(AlertType.WARNING, "Error: station name already exists. Do you wish to enter a new name?",ButtonType.OK, ButtonType.CANCEL);
+                    alert.setHeaderText("Name Already Exists");
+                    
+                    Optional<ButtonType> result2 = alert.showAndWait();
+                    if(result2.get() == ButtonType.OK){
+                        processNewStationRequest();
+                        return;
+                    }
+                    else if(result2.get() == ButtonType.CANCEL){
+                        return;
+                    }
+                }
+            }
             
             Station s = new Station(name);
             s.setCenterX(550);
@@ -427,7 +461,7 @@ public class mapEditController {
     
     public void processRemoveStationRequest(){
         
-        if(dataManager.getSelectedShape() instanceof Station){
+        if(dataManager.getSelectedShape() instanceof Station && !((Station)dataManager.getSelectedShape()).isEndLabel()){
             
             Alert alert = new Alert(AlertType.WARNING, "Are you sure you want to remove this station?",ButtonType.OK, ButtonType.CANCEL);
             alert.setHeaderText("Remove Station");

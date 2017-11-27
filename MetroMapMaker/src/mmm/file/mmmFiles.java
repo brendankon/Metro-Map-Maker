@@ -109,6 +109,36 @@ public class mmmFiles implements AppFileComponent{
         JsonArrayBuilder metroLinesBuilder = Json.createArrayBuilder();
 	ArrayList<MetroLine> metroLines = dataManager.getMetroLines();
         
+        Shape selectedShape = dataManager.getSelectedShape();
+        if(selectedShape instanceof Station && ((Station)selectedShape).isEndLabel()){
+                MetroLine line = ((Station)selectedShape).getMetroLines().get(0);
+                if(!dataManager.getShapes().contains(line.getTopLabel())){
+                    line.getLines().get(0).startXProperty().unbind();
+                    line.getLines().get(0).startYProperty().unbind();
+                    DraggableText topLabel = line.getTopLabel();
+                    topLabel.setX(((Station)selectedShape).getCenterX());
+                    topLabel.setY(((Station)selectedShape).getCenterY());
+                    line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
+                    line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
+                    line.getStations().remove(0);
+                    dataManager.getShapes().remove(selectedShape);
+                    dataManager.getShapes().add(topLabel);
+                }
+                
+                else if(!dataManager.getShapes().contains(line.getBottomLabel())){
+                    line.getLines().get(line.getLines().size()-1).endXProperty().unbind();
+                    line.getLines().get(line.getLines().size()-1).endYProperty().unbind();
+                    DraggableText bottomLabel = line.getBottomLabel();
+                    bottomLabel.setX(((Station)selectedShape).getCenterX());
+                    bottomLabel.setY(((Station)selectedShape).getCenterY());
+                    line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
+                    line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
+                    line.getStations().remove(line.getStations().size()-1);
+                    dataManager.getShapes().remove(selectedShape);
+                    dataManager.getShapes().add(bottomLabel);
+                }
+            }
+        
         for(MetroLine i : metroLines){
             
             String name = i.getName();
@@ -312,7 +342,6 @@ public class mmmFiles implements AppFileComponent{
         }
         
         JsonArray stationArray = obj.getJsonArray(JSON_STATIONS_ARRAY);
-        System.out.println(stationArray.size());
         for(int j = 0; j < stationArray.size(); j++){
             Station s = loadStation(stationArray.getJsonObject(j), data);
             for(int l = 0; l < stationsList.size(); l++){
@@ -423,6 +452,36 @@ public class mmmFiles implements AppFileComponent{
         AppGUI gui = app.getGUI();
         if(gui.getCurrentFile() != null){
             
+            Shape selectedShape = dataManager.getSelectedShape();
+            if(selectedShape instanceof Station && ((Station)selectedShape).isEndLabel()){
+                    MetroLine line = ((Station)selectedShape).getMetroLines().get(0);
+                    if(!dataManager.getShapes().contains(line.getTopLabel())){
+                        line.getLines().get(0).startXProperty().unbind();
+                        line.getLines().get(0).startYProperty().unbind();
+                        DraggableText topLabel = line.getTopLabel();
+                        topLabel.setX(((Station)selectedShape).getCenterX());
+                        topLabel.setY(((Station)selectedShape).getCenterY());
+                        line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
+                        line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
+                        line.getStations().remove(0);
+                        dataManager.getShapes().remove(selectedShape);
+                        dataManager.getShapes().add(topLabel);
+                    }
+
+                    else if(!dataManager.getShapes().contains(line.getBottomLabel())){
+                        line.getLines().get(line.getLines().size()-1).endXProperty().unbind();
+                        line.getLines().get(line.getLines().size()-1).endYProperty().unbind();
+                        DraggableText bottomLabel = line.getBottomLabel();
+                        bottomLabel.setX(((Station)selectedShape).getCenterX());
+                        bottomLabel.setY(((Station)selectedShape).getCenterY());
+                        line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
+                        line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
+                        line.getStations().remove(line.getStations().size()-1);
+                        dataManager.getShapes().remove(selectedShape);
+                        dataManager.getShapes().add(bottomLabel);
+                    }
+            }
+            
             mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
             Pane canvas = workspace.getCanvas();
             WritableImage image = canvas.snapshot(new SnapshotParameters(), null);
@@ -457,9 +516,9 @@ public class mmmFiles implements AppFileComponent{
                 stationsArray = Json.createArrayBuilder();
             }
             
-            for(int i = 0; i < dataManager.getMetroLines().size(); i++){
-                for(int j = 0; j < dataManager.getMetroLines().get(i).getStations().size(); j++){
-                    Station station = dataManager.getMetroLines().get(i).getStations().get(j);
+            for(int i = 0; i < dataManager.getShapes().size(); i++){
+                if(dataManager.getShapes().get(i) instanceof Station){
+                    Station station = (Station)dataManager.getShapes().get(i);
                     String name = station.getName();
                     double x = station.getCenterX();
                     double y = station.getCenterY();
@@ -468,25 +527,6 @@ public class mmmFiles implements AppFileComponent{
                             .add(JSON_X, x)
                             .add(JSON_Y, y).build();
                     stationsArray.add(stationJson);
-                }
-            }
-            
-            for(int i = 0; i < dataManager.getShapes().size(); i++){
-                if(dataManager.getShapes().get(i) instanceof Station){
-                    for(int j = 0; j < dataManager.getMetroLines().size(); j++){
-                        if(!dataManager.getMetroLines().get(j).getStations().contains((Station)dataManager.getShapes().get(i))){
-                            
-                            Station station = (Station)dataManager.getShapes().get(i);
-                            String name = station.getName();
-                            double x = station.getCenterX();
-                            double y = station.getCenterY();
-                            JsonObject stationJson = Json.createObjectBuilder()
-                                    .add(JSON_NAME, name)
-                                    .add(JSON_X, x)
-                                    .add(JSON_Y, y).build();
-                            stationsArray.add(stationJson);
-                        }
-                    }
                 }
             }
             

@@ -10,6 +10,7 @@ import djf.controller.AppFileController;
 import java.util.ArrayList;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
@@ -70,6 +71,9 @@ public class CanvasController {
 
                 else if (shape != null) {
                     
+                    scene.setCursor(Cursor.MOVE);
+                    dataManager.setState(mmmState.DRAGGING_SHAPE);
+                    
                     workspace.lineBox.setValue("");
                     if(shape instanceof Station){
                         if(workspace.stationsBox.getValue() == null || !workspace.stationsBox.getValue().equals(((Station)shape).getName()))
@@ -80,10 +84,52 @@ public class CanvasController {
                         workspace.stationsBox.setValue("");
                     }
                     
-                    scene.setCursor(Cursor.MOVE);
-                    dataManager.setState(mmmState.DRAGGING_SHAPE);
+                    if(shape instanceof DraggableText){
+                        for(int i = 0; i < dataManager.getMetroLines().size(); i++){
+                            if(dataManager.getMetroLines().get(i).getTopLabel() == (DraggableText) shape){
+                                Station lineEnd = new Station("");
+                                lineEnd.setIsEndLabel(true);
+                                lineEnd.setFill(Color.LIGHTCYAN);
+                                lineEnd.setCenterX(x);
+                                lineEnd.setCenterY(y);
+                                dataManager.getMetroLines().get(i).getLines().get(0).startXProperty().unbind();
+                                dataManager.getMetroLines().get(i).getLines().get(0).startYProperty().unbind();
+                                dataManager.getMetroLines().get(i).getLines().get(0).startXProperty().bind(lineEnd.centerXProperty());
+                                dataManager.getMetroLines().get(i).getLines().get(0).startYProperty().bind(lineEnd.centerYProperty());
+                                lineEnd.addMetroLine(dataManager.getMetroLines().get(i));
+                                dataManager.getShapes().remove(dataManager.getMetroLines().get(i).getTopLabel());
+                                dataManager.addShape(lineEnd);
+                                dataManager.selectTopShape(x,y);
+                                scene.setCursor(Cursor.DEFAULT);
+                                dataManager.setState(mmmState.SELECTING_SHAPE);
+                                dataManager.getMetroLines().get(i).getStations().add(0, lineEnd);
+                                break;
+                            }
+                            
+                            if(dataManager.getMetroLines().get(i).getBottomLabel() == (DraggableText)shape){
+                                Station lineEnd = new Station("");
+                                lineEnd.setIsEndLabel(true);
+                                lineEnd.setFill(Color.LIGHTCYAN);
+                                lineEnd.setCenterX(x);
+                                lineEnd.setCenterY(y);
+                                MetroLine line = dataManager.getMetroLines().get(i);
+                                line.getLines().get(line.getLines().size()-1).endXProperty().unbind();
+                                line.getLines().get(line.getLines().size()-1).endYProperty().unbind();
+                                line.getLines().get(line.getLines().size()-1).endXProperty().bind(lineEnd.centerXProperty());
+                                line.getLines().get(line.getLines().size()-1).endYProperty().bind(lineEnd.centerYProperty());
+                                lineEnd.addMetroLine(line);
+                                dataManager.getShapes().remove(dataManager.getMetroLines().get(i).getBottomLabel());
+                                dataManager.addShape(lineEnd);
+                                dataManager.selectTopShape(x,y);
+                                scene.setCursor(Cursor.DEFAULT);
+                                dataManager.setState(mmmState.SELECTING_SHAPE);
+                                dataManager.getMetroLines().get(i).getStations().add(lineEnd);
+                                break;
+                            }
+                        }
+                    }
                     app.getGUI().updateToolbarControls(false); 
-
+                 
                 } else {
                     workspace.lineBox.setValue("");
                     workspace.stationsBox.setValue("");

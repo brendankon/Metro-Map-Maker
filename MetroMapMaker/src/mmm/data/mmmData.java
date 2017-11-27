@@ -151,6 +151,10 @@ public class mmmData implements AppDataComponent{
         this.state = state;
     }
     
+    public mmmState getState(){
+        return state;
+    }
+    
     public boolean isInState(mmmState state){
         return this.state == state;
     }
@@ -194,6 +198,35 @@ public class mmmData implements AppDataComponent{
 	
 	if (selectedShape != null) {
 	    unhighlightShape(selectedShape);
+            
+            if(selectedShape instanceof Station && ((Station)selectedShape).isEndLabel()){
+                MetroLine line = ((Station)selectedShape).getMetroLines().get(0);
+                if(!shapes.contains(line.getTopLabel())){
+                    line.getLines().get(0).startXProperty().unbind();
+                    line.getLines().get(0).startYProperty().unbind();
+                    DraggableText topLabel = line.getTopLabel();
+                    topLabel.setX(((Station)selectedShape).getCenterX());
+                    topLabel.setY(((Station)selectedShape).getCenterY());
+                    line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
+                    line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
+                    line.getStations().remove(0);
+                    shapes.remove(selectedShape);
+                    shapes.add(topLabel);
+                }
+                
+                else if(!shapes.contains(line.getBottomLabel())){
+                    line.getLines().get(line.getLines().size()-1).endXProperty().unbind();
+                    line.getLines().get(line.getLines().size()-1).endYProperty().unbind();
+                    DraggableText bottomLabel = line.getBottomLabel();
+                    bottomLabel.setX(((Station)selectedShape).getCenterX());
+                    bottomLabel.setY(((Station)selectedShape).getCenterY());
+                    line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
+                    line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
+                    line.getStations().remove(line.getStations().size()-1);
+                    shapes.remove(selectedShape);
+                    shapes.add(bottomLabel);
+                }
+            }
 	}
         
         if(selectedShape instanceof Line){
