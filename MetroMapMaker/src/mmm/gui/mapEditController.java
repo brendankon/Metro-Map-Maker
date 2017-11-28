@@ -258,16 +258,16 @@ public class mapEditController {
             else if(metroLine.getLines().size() > 1){
 
                 Station minStation = metroLine.getStations().get(0);
-                double minDiff = abs(station.getCenterX() + station.getCenterY() - 
-                                metroLine.getStations().get(0).getCenterX() - metroLine.getStations().get(0).getCenterY());
+                double minDiff = findDistance(station.getCenterX(), station.getCenterY(), 
+                                metroLine.getStations().get(0).getCenterX(), metroLine.getStations().get(0).getCenterY());
 
                 for(int i = 0; i < metroLine.getStations().size(); i++){
-                    if(abs(station.getCenterX() + station.getCenterY() - 
-                        metroLine.getStations().get(i).getCenterX() - metroLine.getStations().get(i).getCenterY()) < minDiff){
+                    if(findDistance(station.getCenterX(), station.getCenterY(), 
+                        metroLine.getStations().get(i).getCenterX(), metroLine.getStations().get(i).getCenterY()) < minDiff){
 
                         minStation = metroLine.getStations().get(i);
-                        minDiff = abs(station.getCenterX() + station.getCenterY() - 
-                                  metroLine.getStations().get(i).getCenterX() - metroLine.getStations().get(i).getCenterY());
+                        minDiff = findDistance(station.getCenterX(), station.getCenterY(), 
+                                  metroLine.getStations().get(i).getCenterX(), metroLine.getStations().get(i).getCenterY());
                     }
                 }
 
@@ -383,6 +383,12 @@ public class mapEditController {
             }
         }
 
+    }
+    
+    public double findDistance(double x1, double y1, double x2, double y2){
+        double x = Math.pow(x2-x1, 2);
+        double y = Math.pow(y2-y1, 2);
+        return Math.sqrt(x + y);
     }
     
     public void processRemoveStationFromLineRequest(){

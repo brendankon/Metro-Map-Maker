@@ -193,9 +193,10 @@ public class mmmData implements AppDataComponent{
     
     public Shape selectTopShape(int x, int y) {
 	Shape shape = getTopShape(x, y);
-	if (shape == selectedShape)
-	    return shape;
-	
+	if (shape == selectedShape){
+                return shape;
+        }
+        
 	if (selectedShape != null) {
 	    unhighlightShape(selectedShape);
             
@@ -276,6 +277,10 @@ public class mmmData implements AppDataComponent{
     
     public MetroLine getSelectedLine(){
         return selectedLine;
+    }
+    
+    public void setSelectedLine(MetroLine line){
+        selectedLine = line;
     }
      
     @Override

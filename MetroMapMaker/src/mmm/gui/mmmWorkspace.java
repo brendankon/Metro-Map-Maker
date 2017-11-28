@@ -77,8 +77,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -91,6 +93,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import properties_manager.PropertiesManager;
@@ -106,6 +109,8 @@ import static mmm.css.mmmStyle.CLASS_NAV_BOTTOM_ROW;
 import static mmm.css.mmmStyle.CLASS_NAV_LABEL;
 import static mmm.css.mmmStyle.CLASS_RENDER_CANVAS;
 import static mmm.css.mmmStyle.CLASS_ROUTE_ROW;
+import mmm.data.DraggableText;
+import mmm.data.MetroLine;
 import mmm.data.Station;
 
 /**
@@ -295,7 +300,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         row2Top.getChildren().add(stationsBox);
         addStationButton = gui.initChildButton(row2Top, ADD_ICON.toString(), ADD_STATION_TOOLTIP.toString() , false);
         removeStationButton = gui.initChildButton(row2Top, REMOVE_ICON.toString(), REMOVE_TOOLTIP.toString() , false);
-        stationColorPicker = new ColorPicker(Color.BLACK);
+        stationColorPicker = new ColorPicker(Color.WHITE);
         row2Bottom.getChildren().add(stationColorPicker);
         snapButton = new Button();
         snapButton.setDisable(false);
@@ -401,7 +406,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         fontStyleBox.getItems().addAll("Arial", "Courier", "Papyrus", "PT Serif",  "Times New Roman");
         fontStyleBox.setValue("Arial");
         row5Bottom.getChildren().add(fontStyleBox);
-        fontColorPicker = new ColorPicker(Color.BLACK);
+        fontColorPicker = new ColorPicker(Color.WHITE);
         row5Bottom.getChildren().add(fontColorPicker);
         
         row6Top = new HBox();
@@ -531,7 +536,57 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                     stationsBox.setValue("");
                     for(int i = 0; i < data.getMetroLines().size(); i++){
                         if(t1.equals(data.getMetroLines().get(i).getName())){
-                            data.selectTopShape((int)data.getMetroLines().get(i).getLines().get(0).getStartX(), (int)data.getMetroLines().get(i).getLines().get(0).getStartY());
+                            if(data.getSelectedShape() != null){
+                                data.unhighlightShape(data.getSelectedShape());
+                                
+                                Shape selectedShape = data.getSelectedShape();
+                                    if(selectedShape instanceof Station && ((Station)selectedShape).isEndLabel()){
+                                        MetroLine line = ((Station)selectedShape).getMetroLines().get(0);
+                                        if(!data.getShapes().contains(line.getTopLabel())){
+                                            line.getLines().get(0).startXProperty().unbind();
+                                            line.getLines().get(0).startYProperty().unbind();
+                                            DraggableText topLabel = line.getTopLabel();
+                                            topLabel.setX(((Station)selectedShape).getCenterX());
+                                            topLabel.setY(((Station)selectedShape).getCenterY());
+                                            line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
+                                            line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
+                                            line.getStations().remove(0);
+                                            data.getShapes().remove(selectedShape);
+                                            data.getShapes().add(topLabel);
+                                        }
+
+                                        else if(!data.getShapes().contains(line.getBottomLabel())){
+                                            line.getLines().get(line.getLines().size()-1).endXProperty().unbind();
+                                            line.getLines().get(line.getLines().size()-1).endYProperty().unbind();
+                                            DraggableText bottomLabel = line.getBottomLabel();
+                                            bottomLabel.setX(((Station)selectedShape).getCenterX());
+                                            bottomLabel.setY(((Station)selectedShape).getCenterY());
+                                            line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
+                                            line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
+                                            line.getStations().remove(line.getStations().size()-1);
+                                            data.getShapes().remove(selectedShape);
+                                            data.getShapes().add(bottomLabel);
+                                        }
+                                    }
+                            }
+                            
+                            if(data.getSelectedShape() instanceof Line){
+                                for(int k = 0; k < data.getMetroLines().size(); k++){
+                                    for(int j = 0; j < data.getMetroLines().get(k).getLines().size(); j++){
+                                        if((Line)data.getSelectedShape() == data.getMetroLines().get(k).getLines().get(j)){
+                                            data.setSelectedLine(data.getMetroLines().get(k));
+
+                                            for(int l = 0; l < data.getSelectedLine().getLines().size(); l++){
+                                                 data.getSelectedLine().getLines().get(l).setEffect(null);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            data.setSelectedShape(data.getMetroLines().get(i).getLines().get(0));
+                            data.setSelectedLine(data.getMetroLines().get(i));
+                            
 
                             for(int j = 0; j < data.getMetroLines().get(i).getLines().size(); j++){
                                 data.highlightShape(data.getMetroLines().get(i).getLines().get(j));
@@ -551,7 +606,57 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                     for(int i = 0; i < data.getShapes().size(); i++){
                         if(data.getShapes().get(i) instanceof Station){
                             if(((Station)data.getShapes().get(i)).getName().equals(t1)){
-                                data.selectTopShape((int)((Station)data.getShapes().get(i)).getCenterX(), (int)((Station)data.getShapes().get(i)).getCenterY());
+                                if(data.getSelectedShape() != null){
+                                    data.unhighlightShape(data.getSelectedShape());
+                                    
+                                    Shape selectedShape = data.getSelectedShape();
+                                    if(selectedShape instanceof Station && ((Station)selectedShape).isEndLabel()){
+                                        MetroLine line = ((Station)selectedShape).getMetroLines().get(0);
+                                        if(!data.getShapes().contains(line.getTopLabel())){
+                                            line.getLines().get(0).startXProperty().unbind();
+                                            line.getLines().get(0).startYProperty().unbind();
+                                            DraggableText topLabel = line.getTopLabel();
+                                            topLabel.setX(((Station)selectedShape).getCenterX());
+                                            topLabel.setY(((Station)selectedShape).getCenterY());
+                                            line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
+                                            line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
+                                            line.getStations().remove(0);
+                                            data.getShapes().remove(selectedShape);
+                                            data.getShapes().add(topLabel);
+                                        }
+
+                                        else if(!data.getShapes().contains(line.getBottomLabel())){
+                                            line.getLines().get(line.getLines().size()-1).endXProperty().unbind();
+                                            line.getLines().get(line.getLines().size()-1).endYProperty().unbind();
+                                            DraggableText bottomLabel = line.getBottomLabel();
+                                            bottomLabel.setX(((Station)selectedShape).getCenterX());
+                                            bottomLabel.setY(((Station)selectedShape).getCenterY());
+                                            line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
+                                            line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
+                                            line.getStations().remove(line.getStations().size()-1);
+                                            data.getShapes().remove(selectedShape);
+                                            data.getShapes().add(bottomLabel);
+                                        }
+                                    }
+                                }
+                                
+                                if(data.getSelectedShape() instanceof Line){
+                                    for(int k = 0; k < data.getMetroLines().size(); k++){
+                                        for(int j = 0; j < data.getMetroLines().get(k).getLines().size(); j++){
+                                            if((Line)data.getSelectedShape() == data.getMetroLines().get(k).getLines().get(j)){
+                                                data.setSelectedLine(data.getMetroLines().get(k));
+
+                                                for(int l = 0; l < data.getSelectedLine().getLines().size(); l++){
+                                                     data.getSelectedLine().getLines().get(l).setEffect(null);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                data.setSelectedShape((Station)data.getShapes().get(i));
+                                data.highlightShape((Station)data.getShapes().get(i));
+                                ((Station)data.getShapes().get(i)).start((int)((Station)data.getShapes().get(i)).getCenterX(), (int)((Station)data.getShapes().get(i)).getCenterY());
                             }
                         }
                     }

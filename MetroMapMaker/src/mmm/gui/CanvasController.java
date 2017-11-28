@@ -54,7 +54,6 @@ public class CanvasController {
                 Shape shape = dataManager.selectTopShape(x, y);
                 Scene scene = app.getGUI().getPrimaryScene();
                 
-                // AND START DRAGGING IT
                 if(shape instanceof Line){
                     workspace.stationsBox.setValue("");
                     for(int i = 0; i < dataManager.getMetroLines().size(); i++){
@@ -197,29 +196,31 @@ public class CanvasController {
         public void processCanvasMouseDragged(int x, int y) {
             mmmData dataManager = (mmmData) app.getDataComponent();
             
-            if (dataManager.isInState(DRAGGING_SHAPE)) {
-                if(dataManager.getSelectedShape() instanceof Draggable){
-                    Draggable selectedDraggableShape = (Draggable) dataManager.getSelectedShape();
-                    selectedDraggableShape.drag(x, y);
-                    if(!startedDragging){
-                        startedDragging = true;
-                        if(selectedDraggableShape.getShapeType().equals("ELLIPSE")){
-                            Station ellipse = (Station)selectedDraggableShape;
-                            startX = (int)ellipse.getCenterX();
-                            startY = (int)ellipse.getCenterY();
-                        }
+            if(x > 0 && y > 0){
+                if (dataManager.isInState(DRAGGING_SHAPE)) {
+                    if(dataManager.getSelectedShape() instanceof Draggable){
+                        Draggable selectedDraggableShape = (Draggable) dataManager.getSelectedShape();
+                        selectedDraggableShape.drag(x, y);
+                        if(!startedDragging){
+                            startedDragging = true;
+                            if(selectedDraggableShape.getShapeType().equals("ELLIPSE")){
+                                Station ellipse = (Station)selectedDraggableShape;
+                                startX = (int)ellipse.getCenterX();
+                                startY = (int)ellipse.getCenterY();
+                            }
 
-                        else if(selectedDraggableShape.getShapeType().equals("TEXT")){
-                            DraggableText text = (DraggableText)selectedDraggableShape;
-                            startX = (int)text.getX();
-                            startY = (int)text.getY();
-                        }
+                            else if(selectedDraggableShape.getShapeType().equals("TEXT")){
+                                DraggableText text = (DraggableText)selectedDraggableShape;
+                                startX = (int)text.getX();
+                                startY = (int)text.getY();
+                            }
 
-                        startMouseX = x;
-                        startMouseY = y;
+                            startMouseX = x;
+                            startMouseY = y;
+                        }
+                        app.getGUI().updateToolbarControls(false);
                     }
-                    app.getGUI().updateToolbarControls(false);
-                }
+            }
         }
     }
         
