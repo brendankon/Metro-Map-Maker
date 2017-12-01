@@ -46,6 +46,9 @@ import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
 import mmm.data.Draggable;
+import static mmm.data.Draggable.RECTANGLE;
+import static mmm.data.Draggable.TEXT;
+import mmm.data.DraggableRectangle;
 import mmm.data.DraggableText;
 import mmm.data.MetroLine;
 import mmm.data.Station;
@@ -92,6 +95,8 @@ public class mmmFiles implements AppFileComponent{
     static final String JSON_CIRCULAR = "circular";
     static final String JSON_COLOR = "color";
     static final String JSON_STATIONS = "stations";
+    static final String JSON_POSITION_NUMBER = "position_number";
+    static final String JSON_IS_ROTATED = "is_rotated";
     
     static final String DEFAULT_DOCTYPE_DECLARATION = "<!doctype html>\n";
     static final String DEFAULT_ATTRIBUTE_VALUE = "";
@@ -171,6 +176,8 @@ public class mmmFiles implements AppFileComponent{
                         .add(JSON_X, centerX)
                         .add(JSON_Y, centerY)
                         .add(JSON_WIDTH, radiusX)
+                        .add(JSON_POSITION_NUMBER, (double)s.getPositionNumber())
+                        .add(JSON_IS_ROTATED, (double)s.getIsRotated())
                         .add(JSON_HEIGHT, radiusY).build();
                 stationsOnLineArray.add(stationJson);           
             }
@@ -192,6 +199,7 @@ public class mmmFiles implements AppFileComponent{
         
         ObservableList<Node> shapes = dataManager.getShapes();
         JsonArrayBuilder stationsOffLineArray = Json.createArrayBuilder();
+        JsonArrayBuilder shapesArray = Json.createArrayBuilder();
         for(Node node : shapes){
             
             if(node instanceof Station && ((Station)node).getMetroLines().isEmpty()){
@@ -212,14 +220,55 @@ public class mmmFiles implements AppFileComponent{
                     .add(JSON_X, centerX)
                     .add(JSON_Y, centerY)
                     .add(JSON_WIDTH, radiusX)
+                    .add(JSON_POSITION_NUMBER, (double)s.getPositionNumber())
+                    .add(JSON_IS_ROTATED, (double)s.getIsRotated())
                     .add(JSON_HEIGHT, radiusY).build();  
                 stationsOffLineArray.add(stationJson);
+            }
+            
+            else if((Shape)node instanceof DraggableRectangle){
+                DraggableRectangle draggableShape = (DraggableRectangle)node;
+                String type = draggableShape.getShapeType();
+                double x = draggableShape.getX();
+                double y = draggableShape.getY();
+                double width = draggableShape.getWidth();
+                double height = draggableShape.getHeight();
+                JsonObject outlineColorJson = makeJsonColorObject((Color)draggableShape.getStroke());
+                double outlineThickness = draggableShape.getStrokeWidth();
+
+                JsonObject shapeJson = Json.createObjectBuilder()
+                        .add(JSON_TYPE, type)
+                        .add(JSON_X, x)
+                        .add(JSON_Y, y)
+                        .add(JSON_WIDTH, width)
+                        .add(JSON_HEIGHT, height)
+                        .add(JSON_IMAGE_FILL, draggableShape.getImageString())
+                        .add(JSON_OUTLINE_COLOR, outlineColorJson)
+                        .add(JSON_OUTLINE_THICKNESS, outlineThickness).build();
+                shapesArray.add(shapeJson);
+            }
+            
+            else if((Shape)node instanceof DraggableText && ((DraggableText)node).getMetroLine() == null){
+                DraggableText text = (DraggableText)node;
+                double x = text.getX();
+                double y = text.getY();
+                String type = text.getShapeType();
+                JsonObject textObj = makeJsonTextObject(text); 
+
+                JsonObject shapeJson = Json.createObjectBuilder()
+                        .add(JSON_TYPE, type)
+                        .add(JSON_X, x)
+                        .add(JSON_Y, y)
+                        .add(JSON_TEXT_OBJECT, textObj).build();
+                        
+                shapesArray.add(shapeJson);
             }
         }
         
         JsonObject dataManagerJSO = Json.createObjectBuilder()
                 .add(JSON_BG_COLOR, bgColorJson)
                 .add(JSON_METRO_LINES, metroLinesBuilder)
+                .add(JSON_SHAPES, shapesArray)
                 .add(JSON_STATIONS_OFF_LINE, stationsOffLineArray).build();
         
         Map<String, Object> properties = new HashMap<>(1);
@@ -239,6 +288,30 @@ public class mmmFiles implements AppFileComponent{
 	pw.write(prettyPrinted);
 	pw.close();
         
+    }
+    
+    private JsonObject makeJsonTextObject(DraggableText text){
+        String bold;
+        String italicized;
+        
+        if(text.isItalicized()){
+            italicized = "true";
+        }
+        else{
+            italicized = "false";
+        }
+        if(text.isBolded()){
+            bold = "true";
+        }
+        else
+            bold = "false";
+        JsonObject textObject = Json.createObjectBuilder()
+                .add(JSON_TEXT, text.getText())
+                .add(JSON_TEXT_FONT_SIZE, text.getFontSize())
+                .add(JSON_TEXT_FONT_STYLE, text.getFontStyle())
+                .add(JSON_TEXT_FONT_ITALICIZED, italicized)
+                .add(JSON_TEXT_FONT_BOLDED, bold).build();
+        return textObject;
     }
     
     private JsonObject makeJsonColorObject(Color color) {
@@ -262,11 +335,14 @@ public class mmmFiles implements AppFileComponent{
         
         Color bgColor = loadColor(json, JSON_BG_COLOR);
 	dataManager.setBackgroundColor(bgColor);
+        workspace.getBackgroundColorPicker().setValue(bgColor);
         
         JsonArray jsonMetroLines = json.getJsonArray(JSON_METRO_LINES);
         for(int i = 0; i < jsonMetroLines.size(); i++){
             JsonObject jsonMetroLine = jsonMetroLines.getJsonObject(i);
             MetroLine line = loadMetroLine(jsonMetroLine, dataManager);
+            line.getTopLabel().setMetroLine(line);
+            line.getBottomLabel().setMetroLine(line);
             workspace.setLineBox(line.getName());
             line.getLines().remove(0);
             String name = line.getName();
@@ -315,6 +391,8 @@ public class mmmFiles implements AppFileComponent{
                 dataManager.addShape(stationsList.get(j));
                 dataManager.addShape(stationsList.get(j).getLabel());
                 workspace.setStationBox(stationsList.get(j).getName());
+                workspace.getRouteBox1().getItems().add(stationsList.get(j).getName());
+                workspace.getRouteBox2().getItems().add(stationsList.get(j).getName());
             }
         
         JsonArray stationsOffLine = json.getJsonArray(JSON_STATIONS_OFF_LINE);
@@ -324,9 +402,105 @@ public class mmmFiles implements AppFileComponent{
             dataManager.addShape(s);
             dataManager.addShape(s.getLabel());
             workspace.setStationBox(s.getName());
+            workspace.getRouteBox1().getItems().add(s.getName());
+            workspace.getRouteBox2().getItems().add(s.getName());
         }
         
         stationsList = new ArrayList<>();
+        
+        JsonArray jsonShapeArray = json.getJsonArray(JSON_SHAPES);
+	for (int i = 0; i < jsonShapeArray.size(); i++) {
+	    JsonObject jsonShape = jsonShapeArray.getJsonObject(i);
+	    Shape shape = loadShape(jsonShape, dataManager);
+	    dataManager.addShape(shape);
+	}
+    }
+    
+    private Shape loadShape(JsonObject jsonShape, mmmData data) {
+	// FIRST BUILD THE PROPER SHAPE TYPE
+	String type = jsonShape.getString(JSON_TYPE);
+	Shape shape = null;
+	if (type.equals(RECTANGLE)) {
+
+                DraggableRectangle rect = new DraggableRectangle();
+                
+                Image image = new Image(jsonShape.getString(JSON_IMAGE_FILL));
+                ImagePattern ip = new ImagePattern(image);
+                rect.setFill(ip);
+                rect.setImageString(jsonShape.getString(JSON_IMAGE_FILL));
+                Color outlineColor = loadColor(jsonShape, JSON_OUTLINE_COLOR);
+                double outlineThickness = getDataAsDouble(jsonShape, JSON_OUTLINE_THICKNESS);
+                rect.setStroke(outlineColor);
+                rect.setStrokeWidth(outlineThickness);
+
+                // AND THEN ITS DRAGGABLE PROPERTIES
+                double x = getDataAsDouble(jsonShape, JSON_X);
+                double y = getDataAsDouble(jsonShape, JSON_Y);
+                double width = getDataAsDouble(jsonShape, JSON_WIDTH);
+                double height = getDataAsDouble(jsonShape, JSON_HEIGHT);
+                //Draggable draggableShape = (Draggable)shape;
+                rect.setLocationAndSize(x, y, width, height);
+
+                // ALL DONE, RETURN IT
+                shape = (Shape)rect;
+                data.getImageShapes().add(shape);
+                return shape;
+        }
+        
+        if(type.equals(TEXT)){
+            
+            shape = loadText(jsonShape, JSON_TEXT_OBJECT);
+            double x = getDataAsDouble(jsonShape, JSON_X);
+            double y = getDataAsDouble(jsonShape, JSON_Y);
+            DraggableText text = (DraggableText)shape;
+            text.setLocationAndSize(x,y,0,0);
+            data.addTextShape(text);
+            
+
+            // ALL DONE, RETURN IT
+            return shape;
+        }
+        return shape;
+    }
+    
+    private DraggableText loadText(JsonObject json, String textObj){
+        JsonObject jsonText = json.getJsonObject(textObj);
+        String textString = jsonText.getString(JSON_TEXT);
+        double fontSize = getDataAsDouble(jsonText, JSON_TEXT_FONT_SIZE);
+        String textStyle = jsonText.getString(JSON_TEXT_FONT_STYLE);
+        String boolI = jsonText.getString(JSON_TEXT_FONT_ITALICIZED);
+        String boolB = jsonText.getString(JSON_TEXT_FONT_BOLDED);
+        boolean isItalicized = Boolean.parseBoolean(boolI);
+        boolean isBolded = Boolean.parseBoolean(boolB);
+        
+        DraggableText text = new DraggableText(textStyle, fontSize);
+        text.setText(textString);
+        
+        if(!isBolded && !isItalicized){
+            text.setFont(Font.font(text.getFontStyle(), FontWeight.NORMAL, FontPosture.REGULAR, fontSize));
+            text.setBolded(false);
+            text.setItalicized(false);
+        }
+
+        else if(!isBolded && isItalicized){
+            text.setFont(Font.font(text.getFontStyle(), FontWeight.NORMAL, FontPosture.ITALIC, fontSize));
+            text.setBolded(false);
+            text.setItalicized(true);
+        }
+
+        else if(isBolded && !isItalicized){
+            text.setFont(Font.font(text.getFontStyle(), FontWeight.BOLD, FontPosture.REGULAR, fontSize));
+            text.setBolded(true);
+            text.setItalicized(false);
+        }
+
+        else if(isBolded && isItalicized){
+            text.setFont(Font.font(text.getFontStyle(), FontWeight.BOLD, FontPosture.ITALIC, fontSize));
+            text.setBolded(true);
+            text.setItalicized(true);
+        }
+        
+        return text;
     }
     
     private MetroLine loadMetroLine(JsonObject obj, mmmData data){
@@ -403,6 +577,8 @@ public class mmmFiles implements AppFileComponent{
         double y = getDataAsDouble(obj, JSON_Y);
         double width = getDataAsDouble(obj, JSON_WIDTH);
         double height = getDataAsDouble(obj, JSON_HEIGHT);
+        int positionNumber = (int)getDataAsDouble(obj, JSON_POSITION_NUMBER);
+        int isRotated = (int)getDataAsDouble(obj, JSON_IS_ROTATED);
         Text text = new Text();
         text.setText(name);
         text.setFont(Font.font("System", 14));
@@ -414,8 +590,43 @@ public class mmmFiles implements AppFileComponent{
         s.setRadiusX(width);
         s.setRadiusY(height);
         s.setLabel(text);
-        text.xProperty().bind(s.centerXProperty().add(30));
-        text.yProperty().bind(s.centerYProperty().subtract(20));
+        
+        if(isRotated == 0){
+                text.setRotate(0);
+                s.setIsRotated(0);
+            }
+            
+        else{
+            text.setRotate(270);
+            s.setIsRotated(1);
+        }
+        
+        if(positionNumber == 0){
+            text.xProperty().bind(s.centerXProperty().add(20 + s.getRadiusX()));
+            text.yProperty().bind(s.centerYProperty().subtract(10 + s.getRadiusY()));
+            s.setPositionNumber(0);
+
+           }
+           
+           else if(positionNumber == 1){
+               text.xProperty().bind(s.centerXProperty().subtract((10 + s.getRadiusX())+(7*text.getText().length())));
+                text.yProperty().bind(s.centerYProperty().subtract(10 + s.getRadiusY()));
+                s.setPositionNumber(1);
+               
+           }
+           
+           else if(positionNumber == 2){
+               text.xProperty().bind(s.centerXProperty().subtract((10 + s.getRadiusX())+(7*text.getText().length())));
+               text.yProperty().bind(s.centerYProperty().add(10 + s.getRadiusY()));
+               s.setPositionNumber(2);
+               
+           }
+           
+           else if(positionNumber == 3){
+               text.xProperty().bind(s.centerXProperty().add(20 + s.getRadiusX()));
+               text.yProperty().bind(s.centerYProperty().add(10 + s.getRadiusY()));
+               s.setPositionNumber(3);
+           }
         
         return s;
     }

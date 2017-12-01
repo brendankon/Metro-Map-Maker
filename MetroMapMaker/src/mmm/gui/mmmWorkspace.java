@@ -100,6 +100,8 @@ import properties_manager.PropertiesManager;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import jtps.jTPS;
+import jtps.jTPS_Transaction;
 import static mmm.css.mmmStyle.CLASS_BUTTON;
 import static mmm.css.mmmStyle.CLASS_COLOR_CHOOSER_CONTROL;
 import static mmm.css.mmmStyle.CLASS_EDIT_TOOLBAR;
@@ -125,8 +127,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     VBox editToolbar;
     FlowPane undoRedoToolbar;
     FlowPane aboutToolbar;
-    Button undoButton;
-    Button redoButton;
+    public Button undoButton;
+    public Button redoButton;
     Button exportButton;
     Button aboutButton;
     Button saveAs;
@@ -196,6 +198,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     Button decreaseMapSize;
     Label gridLabel;
     
+    public int redoCounter;
+    boolean startDrag = false;
+    int startOutline;
     Pane canvas;
     AppMessageDialogSingleton messageDialog;
     AppYesNoCancelDialogSingleton yesNoCancelDialog;
@@ -208,6 +213,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     
     public mmmWorkspace(AppTemplate initApp) {
         
+        redoCounter = 0;
         app = initApp;
         gui = app.getGUI();
         
@@ -285,7 +291,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         removeStationFromLineButton.setMaxSize(105,23);
         row1Bottom.getChildren().add(removeStationFromLineButton);
         listStationsButton = gui.initChildButton(row1Bottom, LIST_ICON.toString(), LIST_TOOLTIP.toString(), false);
-        lineThicknessSlider = new Slider();
+        lineThicknessSlider = new Slider(1,15,5);
         row1Bottom.getChildren().add(lineThicknessSlider);
         
         row2Top = new HBox();
@@ -323,7 +329,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         moveLabelButton.setMaxSize(80,26);
         row2Bottom.getChildren().add(moveLabelButton);
         rotateButton = gui.initChildButton(row2Top, ROTATE_ICON.toString(), ROTATE_TOOLTIP.toString() , false);
-        stationRadiusSlider = new Slider();
+        stationRadiusSlider = new Slider(5,20,10);
         row2Bottom.getChildren().add(stationRadiusSlider);
         
         row3Top = new HBox();
@@ -400,13 +406,13 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         italicsButton = gui.initChildButton(row5Bottom, ITALIC_ICON.toString(), ITALIC_TOOLTIP.toString() , false);
         fontSizeBox = new ComboBox();
         fontSizeBox.getItems().addAll(10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48);
-        fontSizeBox.setValue(12);
+        fontSizeBox.setValue(20);
         row5Bottom.getChildren().add(fontSizeBox);
         fontStyleBox = new ComboBox();
         fontStyleBox.getItems().addAll("Arial", "Courier", "Papyrus", "PT Serif",  "Times New Roman");
         fontStyleBox.setValue("Arial");
         row5Bottom.getChildren().add(fontStyleBox);
-        fontColorPicker = new ColorPicker(Color.WHITE);
+        fontColorPicker = new ColorPicker(Color.BLACK);
         row5Bottom.getChildren().add(fontColorPicker);
         
         row6Top = new HBox();
@@ -453,6 +459,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         
         canvas.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
         canvas.prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
+        canvas.setBorder(editToolbar.getBorder());
+
         workspace = new BorderPane();
         ((BorderPane)workspace).setLeft(editToolbar);
         ((BorderPane)workspace).setCenter(canvas);
@@ -466,12 +474,28 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         return canvas;
     }
     
+    public ColorPicker getBackgroundColorPicker(){
+        return setBackgroundColorPicker;
+    }
+    
+    public ColorPicker getStationColorPicker(){
+        return stationColorPicker;
+    }
+    
     public void setLineBox(String s){
         lineBox.getItems().add(s);
     }
     
     public void setStationBox(String s){
         stationsBox.getItems().add(s);
+    }
+    
+    public ComboBox getRouteBox1(){
+        return routeBox1;
+    }
+    
+    public ComboBox getRouteBox2(){
+        return routeBox2;
     }
     
     public void resetLineBox(){
@@ -482,6 +506,13 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     public void resetStationBox(){
         stationsBox.getItems().removeAll(stationsBox.getItems());
         stationsBox.setValue("");
+    }
+    
+    public void resetRouteBoxes(){
+        routeBox1.getItems().removeAll(routeBox1.getItems());
+        routeBox1.setValue("");
+        routeBox2.getItems().removeAll(routeBox2.getItems());
+        routeBox2.setValue("");
     }
     
     public void controls(){
@@ -526,6 +557,102 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         
         editLineButton.setOnAction(e ->{
            controller.processEditLineRequest();
+        });
+        
+        setBackgroundColorPicker.setOnAction(e ->{
+           controller.processBackgroundColorRequest(); 
+        });
+        
+        addImageButton.setOnAction(e ->{
+            controller.processNewImage();
+        });
+        
+        listStationsButton.setOnAction(e ->{
+            controller.processListStationsRequest();
+        });
+        
+        moveLabelButton.setOnAction(e ->{
+           controller.processMoveStationLabelRequest();
+        });
+        
+        rotateButton.setOnAction(e ->{
+           controller.processRotateRequest();
+        });
+        
+        lineThicknessSlider.valueProperty().addListener(e-> {           
+	    controller.processSelectOutlineThickness(lineThicknessSlider);
+	});
+        lineThicknessSlider.setOnMouseDragged(e->{
+            processThicknessSliderPress(lineThicknessSlider);
+        });
+        lineThicknessSlider.setOnMouseReleased(e->{
+            processThicknessSliderRelease(lineThicknessSlider);
+        });
+        
+        stationRadiusSlider.valueProperty().addListener(e-> {           
+	    controller.processSelectOutlineThickness(stationRadiusSlider);
+	});
+        stationRadiusSlider.setOnMouseDragged(e->{
+            processThicknessSliderPress(stationRadiusSlider);
+        });
+        stationRadiusSlider.setOnMouseReleased(e->{
+            processThicknessSliderRelease(stationRadiusSlider);
+        });
+        addLabelButton.setOnAction(e ->{
+           controller.processNewText(); 
+        });
+        stationColorPicker.setOnAction(e ->{
+            controller.processStationColorRequest();
+        });
+        fontStyleBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
+            jTPS j = data.getJTPS();
+            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, t1,t, false, false, (DraggableText)data.getSelectedShape(), app, "");
+            j.addTransaction(transaction);
+            if(data.getJTPS().getTransList().size() == 1){
+                redoCounter = 0;
+                redoButton.setDisable(true);
+            }
+            undoButton.setDisable(false);
+        });
+        fontSizeBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
+            jTPS j = data.getJTPS();
+            jTPS_Transaction transaction = new ChangeText_Transaction(t1,t, null,null, false, false, (DraggableText)data.getSelectedShape(), app, "");
+            j.addTransaction(transaction);
+            if(data.getJTPS().getTransList().size() == 1){
+                redoCounter = 0;
+                redoButton.setDisable(true);
+            }
+            undoButton.setDisable(false);
+        });
+        boldButton.setOnAction(e->{
+            jTPS j = data.getJTPS();
+            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, null,null, true, false, (DraggableText)data.getSelectedShape(), app, "");
+            j.addTransaction(transaction);
+            if(data.getJTPS().getTransList().size() == 1){
+                redoCounter = 0;
+                redoButton.setDisable(true);
+            }
+            undoButton.setDisable(false);
+            //data.processBoldRequest();
+        });
+        italicsButton.setOnAction(e->{
+            jTPS j = data.getJTPS();
+            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, null,null, false, true, (DraggableText)data.getSelectedShape(), app, "");
+            j.addTransaction(transaction);
+            if(data.getJTPS().getTransList().size() == 1){
+                redoCounter = 0;
+                redoButton.setDisable(true);
+            }
+            undoButton.setDisable(false);
+        });
+        removeElementButton.setOnAction(e ->{
+            controller.processRemoveSelectedShape();
+        });
+        zoomInButton.setOnAction(e ->{
+           controller.processZoomInRequest(); 
+        });
+        zoomOutButton.setOnAction(e ->{
+           controller.processZoomOutRequest(); 
         });
         
         lineBox.valueProperty().addListener(new ChangeListener<String>(){
@@ -665,6 +792,27 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             }
         });
         
+        undoButton.setOnAction(e->{
+            redoButton.setDisable(false);
+            mapEditController mapEditController = new mapEditController(app);
+            mapEditController.processUndoRequest();
+            redoCounter++;
+            if((data.getJTPS().getTransactions()) < 0){
+                undoButton.setDisable(true);
+            }
+                
+        });
+        redoButton.setOnAction(e->{
+            mapEditController mapEditController = new mapEditController(app);
+            mapEditController.processRedoRequest();
+            if(data.getJTPS().getTransactions() > -1)
+                undoButton.setDisable(false);
+            redoCounter--;
+            if(redoCounter == 0){
+                redoButton.setDisable(true);
+            }
+        });
+        
         // MAKE THE CANVAS CONTROLLER	
 	canvasController = new CanvasController(app);
 	canvas.setOnMousePressed(e->{
@@ -676,6 +824,30 @@ public class mmmWorkspace extends AppWorkspaceComponent{
 	canvas.setOnMouseDragged(e->{
 	    canvasController.processCanvasMouseDragged((int)e.getX(), (int)e.getY());
 	});
+    }
+    
+    public void processThicknessSliderPress(Slider selectedSlider){
+        if(!startDrag){
+            startOutline = (int)selectedSlider.getValue();
+            startDrag = true;
+        }
+    }
+    
+    public void processThicknessSliderRelease(Slider selectedSlider){
+        mmmData data = (mmmData)app.getDataComponent();
+        
+        if(data.getSelectedShape() != null){
+            int endOutline = (int)selectedSlider.getValue();
+            jTPS j = data.getJTPS();
+            jTPS_Transaction transaction = new ChangeOutlineThickness_Transaction(startOutline, endOutline, data.getSelectedShape(), app);
+            j.addTransaction(transaction);
+            if(data.getJTPS().getTransList().size() == 1){
+                redoCounter = 0;
+                redoButton.setDisable(true);
+            }
+            undoButton.setDisable(false);
+            startDrag = false;
+        }
     }
     
     public void loadSelectedShapeSettings(Shape shape){
@@ -778,6 +950,57 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             });
         }
         
+    }
+    
+    public void processFontSizeRequest(Object t1, Shape shape){
+
+            if(t1 != null){
+                mmmData data = (mmmData)app.getDataComponent();
+                for(int i = 0; i < data.getTextShapes().size(); i++){
+                    if(shape == data.getTextShapes().get(i)){
+                        DraggableText text = data.getTextShapes().get(i);
+                        //data.getTextShapes().get(i).setFont(Font.font(data.getTextShapes().get(i).getFont().getFamily(), (double)((Integer)t1)));
+                        
+                        if(!text.isBolded() && !text.isItalicized()){
+                            text.setFont(Font.font(text.getFontStyle(), FontWeight.NORMAL, FontPosture.REGULAR, (double)((Integer)t1)));
+                            text.setBolded(false);
+                            text.setItalicized(false);
+                        }
+
+                        else if(!text.isBolded() && text.isItalicized()){
+                            text.setFont(Font.font(text.getFontStyle(), FontWeight.NORMAL, FontPosture.ITALIC, (double)((Integer)t1)));
+                            text.setBolded(false);
+                            text.setItalicized(true);
+                        }
+
+                        else if(text.isBolded() && !text.isItalicized()){
+                            text.setFont(Font.font(text.getFontStyle(), FontWeight.BOLD, FontPosture.REGULAR, (double)((Integer)t1)));
+                            text.setBolded(true);
+                            text.setItalicized(false);
+                        }
+
+                        else if(text.isBolded() && text.isItalicized()){
+                            text.setFont(Font.font(text.getFontStyle(), FontWeight.BOLD, FontPosture.ITALIC, (double)((Integer)t1)));
+                            text.setBolded(true);
+                            text.setItalicized(true);
+                        }
+                        break;
+                    }
+                }
+            }
+    }
+    
+    public void processFontStyleRequest(Object t1, Shape shape){
+        
+        if (t1 != null) {
+            mmmData data = (mmmData)app.getDataComponent();
+            for(int i = 0; i < data.getTextShapes().size(); i++){
+                if(shape == data.getTextShapes().get(i)){
+                    data.getTextShapes().get(i).setFont(Font.font((String)t1, data.getTextShapes().get(i).getFont().getSize()));
+                    break;
+                }
+            }
+        }
     }
     
     @Override

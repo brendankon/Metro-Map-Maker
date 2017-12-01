@@ -30,6 +30,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
@@ -45,6 +46,9 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import jtps.jTPS;
+import jtps.jTPS_Transaction;
+import mmm.data.DraggableRectangle;
 import mmm.data.mmmState;
 import properties_manager.PropertiesManager;
 
@@ -192,8 +196,8 @@ public class mapEditController {
             s.setCenterY(300);
             Text t = new Text(name);
             t.setFont(Font.font("System", 14));
-            t.xProperty().bind(s.centerXProperty().add(30));
-            t.yProperty().bind(s.centerYProperty().subtract(20));
+            t.xProperty().bind(s.centerXProperty().add(20 + s.getRadiusX()));
+            t.yProperty().bind(s.centerYProperty().subtract(10 + s.getRadiusY()));
             s.setLabel(t);
             
             dataManager.addShape(s);
@@ -202,6 +206,8 @@ public class mapEditController {
 
             workspace.stationsBox.setValue(name);
             workspace.setStationBox(name);
+            workspace.routeBox1.getItems().add(name);
+            workspace.routeBox2.getItems().add(name);
            
         });
     }
@@ -489,11 +495,25 @@ public class mapEditController {
 
                 mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
                 workspace.stationsBox.getItems().remove(station.getName());
+                workspace.routeBox1.getItems().remove(station.getName());
+                workspace.routeBox2.getItems().remove(station.getName());
                 dataManager.getShapes().remove(station.getLabel());
             }
             
             if(result.get() == ButtonType.CANCEL){ }
         }
+    }
+    
+    public void processZoomInRequest(){
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        workspace.getCanvas().setScaleX(workspace.getCanvas().getScaleX() + (workspace.getCanvas().getScaleX()*.2));
+        workspace.getCanvas().setScaleY(workspace.getCanvas().getScaleY() + (workspace.getCanvas().getScaleY()*.2));
+    }
+    
+    public void processZoomOutRequest(){
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        workspace.getCanvas().setScaleX(workspace.getCanvas().getScaleX() - (workspace.getCanvas().getScaleX()*.2));
+        workspace.getCanvas().setScaleY(workspace.getCanvas().getScaleY() - (workspace.getCanvas().getScaleY()*.2));
     }
     
     public void processEditLineRequest(){
@@ -572,5 +592,226 @@ public class mapEditController {
                 editLineStage.close();
             });
         }
-    }        
+    } 
+    
+    public void processBackgroundColorRequest(){
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+	Color selectedColor = workspace.getBackgroundColorPicker().getValue();
+	if (selectedColor != null) {
+	    //dataManager.setBackgroundColor(selectedColor);
+            jTPS j = dataManager.getJTPS();
+            jTPS_Transaction transaction = new AddColor_Transaction(selectedColor, true, false, dataManager, dataManager.getSelectedShape(), app);
+            j.addTransaction(transaction);
+            if(dataManager.getJTPS().getTransList().size() == 1){
+                workspace.redoCounter = 0;
+                workspace.redoButton.setDisable(true);
+            }
+	    app.getGUI().updateToolbarControls(false);
+            workspace.undoButton.setDisable(false);
+	}
+    }
+    
+    public void processNewImage(){
+       
+        
+        FileChooser fc = new FileChooser();
+        fc.setInitialDirectory(new File(PATH_IMAGES));
+        File selectedFile = fc.showOpenDialog(app.getGUI().getWindow());
+                  
+            if(selectedFile != null){
+                
+                if (dataManager.getSelectedShape() != null) {
+                    dataManager.unhighlightShape(dataManager.getSelectedShape());
+                    dataManager.setSelectedShape(null);
+                }
+                
+                Image image = new Image(selectedFile.toURI().toString());
+                DraggableRectangle rect = new DraggableRectangle();
+                rect.setImageString(selectedFile.toURI().toString());
+                rect.start(200,200);
+                rect.setWidth((int)image.getWidth());
+                rect.setHeight((int)image.getHeight());
+                ImagePattern iP = new ImagePattern(image);
+                Shape newShape = rect;
+                mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+                newShape.setFill(iP);
+                newShape.setStroke(Color.BLACK);
+                newShape.setStrokeWidth(0);
+                
+                //shapes.add(newShape);
+                jTPS_Transaction transaction = new AddShape_Transaction(newShape, dataManager, app);
+                dataManager.getJTPS().addTransaction(transaction);
+                if(dataManager.getJTPS().getTransList().size() == 1){
+                    workspace.redoCounter = 0;
+                    workspace.redoButton.setDisable(true);
+                }
+                workspace.undoButton.setDisable(false);
+                dataManager.getImageShapes().add(newShape);
+            }                  
+    }
+    
+    public void processListStationsRequest(){
+        
+        if(dataManager.getSelectedShape() instanceof Line){
+            Stage listStationsStage = new Stage();
+            Pane listStationsPane = new Pane();
+            
+            MetroLine line = dataManager.getSelectedLine();
+            Text metroText = new Text("Metro Line: " + line.getName());
+            metroText.setFont(Font.font("System", FontWeight.BOLD, 16));
+            metroText.setX(10);
+            metroText.setY(40);
+            Text stationsText = new Text("Stations:\n");
+            for(int i = 0; i < line.getStations().size(); i++){
+                stationsText.setText(stationsText.getText() + "         " + line.getStations().get(i).getName() + "\n");
+            }
+            stationsText.setFont(Font.font("System", FontWeight.BOLD, 16));
+            stationsText.setX(10);
+            stationsText.setY(60);
+            
+            listStationsPane.getChildren().add(metroText);
+            listStationsPane.getChildren().add(stationsText);
+            Scene scene = new Scene(listStationsPane, 400, 100 + (20 * line.getStations().size()));
+            listStationsStage.setScene(scene);
+            listStationsStage.setTitle("Stations");
+            listStationsStage.show();
+        }
+    }
+    
+    public void processMoveStationLabelRequest(){
+        
+        if(dataManager.getSelectedShape() instanceof Station){
+           Station station = (Station)dataManager.getSelectedShape();
+           Text label = station.getLabel();
+           
+           if(station.getPositionNumber() == 0){
+                label.xProperty().bind(station.centerXProperty().subtract((10 + station.getRadiusX())+(7*label.getText().length())));
+                label.yProperty().bind(station.centerYProperty().subtract(10 + station.getRadiusY()));
+                station.setPositionNumber(1);
+           }
+           
+           else if(station.getPositionNumber() == 1){
+               
+               label.xProperty().bind(station.centerXProperty().subtract((10 + station.getRadiusX())+(7*label.getText().length())));
+               label.yProperty().bind(station.centerYProperty().add(10 + station.getRadiusY()));
+               station.setPositionNumber(2);
+           }
+           
+           else if(station.getPositionNumber() == 2){
+               
+               label.xProperty().bind(station.centerXProperty().add(20 + station.getRadiusX()));
+               label.yProperty().bind(station.centerYProperty().add(10 + station.getRadiusY()));
+               station.setPositionNumber(3);
+           }
+           
+           else if(station.getPositionNumber() == 3){
+               label.xProperty().bind(station.centerXProperty().add(20 + station.getRadiusX()));
+               label.yProperty().bind(station.centerYProperty().subtract(10 + station.getRadiusY()));
+               station.setPositionNumber(0);
+           }
+        }
+    }
+    
+    public void processRotateRequest(){
+        if(dataManager.getSelectedShape() instanceof Station){
+            Station station = (Station)dataManager.getSelectedShape();
+            Text label = station.getLabel();
+            
+            if(station.getIsRotated() == 0){
+                label.setRotate(270);
+                station.setIsRotated(1);
+            }
+            
+            else{
+                label.setRotate(0);
+                station.setIsRotated(0);
+            }
+        }
+    }
+    
+    public void processSelectOutlineThickness(Slider selectedSlider) {
+	int outlineThickness = (int)selectedSlider.getValue();
+	dataManager.setCurrentOutlineThickness(outlineThickness);
+	app.getGUI().updateToolbarControls(false);
+    }
+    
+    public void processStationColorRequest(){
+        if(dataManager.getSelectedShape() instanceof Station){
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            Color selectedColor = workspace.getStationColorPicker().getValue();
+            if (selectedColor != null) {
+                //dataManager.setCurrentOutlineColor(selectedColor);
+                if(dataManager.getSelectedShape() != null){
+                    jTPS j = dataManager.getJTPS();
+                    jTPS_Transaction transaction = new AddColor_Transaction(selectedColor, false, true, dataManager, dataManager.getSelectedShape(), app);
+                    j.addTransaction(transaction);
+                    if(dataManager.getJTPS().getTransList().size() == 1){
+                        workspace.redoCounter = 0;
+                        workspace.redoButton.setDisable(true);
+                    }
+                }
+
+                app.getGUI().updateToolbarControls(false);
+                workspace.undoButton.setDisable(false);
+            }
+        }
+    }
+    
+    public void processRemoveSelectedShape() {
+	// REMOVE THE SELECTED SHAPE IF THERE IS ONE
+	//dataManager.removeSelectedShape();
+        if(dataManager.getSelectedShape() instanceof DraggableRectangle || (dataManager.getSelectedShape() instanceof DraggableText && ((DraggableText)dataManager.getSelectedShape()).getMetroLine() == null)){
+            jTPS j = dataManager.getJTPS();
+            jTPS_Transaction transaction = new RemoveShape_Transaction(dataManager.getSelectedShape(), dataManager, app);
+            j.addTransaction(transaction);
+
+            // ENABLE/DISABLE THE PROPER BUTTONS
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            if(dataManager.getJTPS().getTransList().size() == 1){
+                    workspace.redoCounter = 0;
+                    workspace.redoButton.setDisable(true);
+            }
+            workspace.reloadWorkspace(dataManager);
+            app.getGUI().updateToolbarControls(false);
+            workspace.undoButton.setDisable(false);
+        }
+    }
+    
+    public void processNewText(){
+        
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        TextInputDialog txtDialog = new TextInputDialog();
+        txtDialog.setTitle("New Text");
+        txtDialog.setHeaderText("Entry for new text");
+        txtDialog.setContentText("Please enter Text:");
+
+        
+        Optional<String> input = txtDialog.showAndWait();
+        if(input.isPresent()){
+            DraggableText text = new DraggableText("Arial", 20.0);
+            text.setText(input.get());
+            text.start(500,300);
+            jTPS_Transaction transaction = new AddShape_Transaction((Shape)text, dataManager, app);
+            dataManager.getJTPS().addTransaction(transaction);
+            if(dataManager.getJTPS().getTransList().size() == 1){
+                workspace.redoCounter = 0;
+                workspace.redoButton.setDisable(true);
+            }
+            workspace.undoButton.setDisable(false);
+            dataManager.getTextShapes().add(text);
+        }    
+    }
+    
+    public void processUndoRequest(){
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        jTPS j = dataManager.getJTPS();
+        j.undoTransaction();
+        workspace.redoButton.setDisable(false);
+        
+    }
+    
+    public void processRedoRequest(){
+        jTPS j = dataManager.getJTPS();
+        j.doTransaction();
+    }
 }

@@ -17,6 +17,8 @@ public class Station extends Ellipse implements Draggable{
     ArrayList<MetroLine> metroLines;
     Text label;
     boolean isEndLabel;
+    int isRotated;
+    int positionNumber;
     
     public Station(String name){
         this.name = name;
@@ -28,6 +30,8 @@ public class Station extends Ellipse implements Draggable{
         this.setStroke(Color.BLACK);
         this.setStrokeWidth(2);
         metroLines = new ArrayList<>();
+        positionNumber = 0;
+        isRotated = 0;
         
     }
     
@@ -118,5 +122,21 @@ public class Station extends Ellipse implements Draggable{
     
     public void setIsEndLabel(boolean b){
         isEndLabel = b;
+    }
+    
+    public int getPositionNumber(){
+        return positionNumber;
+    }
+    
+    public void setPositionNumber(int n){
+        positionNumber = n;
+    }
+    
+    public int getIsRotated(){
+        return isRotated;
+    }
+    
+    public void setIsRotated(int b){
+        isRotated = b;
     }
 }

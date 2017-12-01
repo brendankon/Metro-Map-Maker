@@ -32,6 +32,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import jtps.jTPS;
 import static mmm.data.mmmState.SELECTING_SHAPE;
 
 /**
@@ -40,9 +41,12 @@ import static mmm.data.mmmState.SELECTING_SHAPE;
  */
 public class mmmData implements AppDataComponent{
     
+    jTPS jTPS = new jTPS();
+    
     ObservableList<Node> shapes;
     
     ArrayList<Shape> imageShapes;
+    ArrayList<DraggableText> textShapes;
     ArrayList<MetroLine> metroLines;
     
     // THE BACKGROUND COLOR
@@ -51,7 +55,6 @@ public class mmmData implements AppDataComponent{
     // AND NOW THE EDITING DATA
 
     // THIS IS THE SHAPE CURRENTLY BEING SIZED BUT NOT YET ADDED
-    Shape newShape;
     MetroLine selectedLine;
 
     // THIS IS THE SHAPE CURRENTLY SELECTED
@@ -81,10 +84,10 @@ public class mmmData implements AppDataComponent{
     public mmmData(AppTemplate initApp) {
        	app = initApp;
         imageShapes = new ArrayList<>();
+        textShapes = new ArrayList<>();
         metroLines = new ArrayList<>();
 
 	// NO SHAPE STARTS OUT AS SELECTED
-	newShape = null;
 	selectedShape = null;
 
 	// INIT THE COLORS
@@ -138,6 +141,18 @@ public class mmmData implements AppDataComponent{
 	return currentBorderWidth;
     }
     
+    public ArrayList<Shape> getImageShapes(){
+        return imageShapes;
+    }
+    
+    public ArrayList<DraggableText> getTextShapes(){
+        return textShapes;
+    }
+    
+    public void addTextShape(DraggableText text){
+        textShapes.add(text);
+    }
+    
     public mmmWorkspace getWorkspace(){
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
         return workspace;
@@ -180,6 +195,23 @@ public class mmmData implements AppDataComponent{
     
     public void setSelectedShape(Shape initSelectedShape) {
 	selectedShape = initSelectedShape;
+    }
+    
+    public void setCurrentOutlineThickness(int initBorderWidth) {
+	currentBorderWidth = initBorderWidth;
+	if (selectedShape != null) {
+            if(selectedShape instanceof Line){
+                for(int i = 0; i < selectedLine.getLines().size(); i++){
+                    selectedLine.getLines().get(i).setStrokeWidth(currentBorderWidth);
+                }
+            }
+        
+            else if(selectedShape instanceof Station){
+                Station station = (Station)selectedShape;
+                station.setRadiusX(currentBorderWidth);
+                station.setRadiusY(currentBorderWidth);
+            }
+	}
     }
     
     public void setBackgroundColor(Color initBackgroundColor) {
@@ -256,6 +288,11 @@ public class mmmData implements AppDataComponent{
             if (shape != null && ((Draggable)shape).getShapeType().equals("ELLIPSE")) {
                 ((Station)shape).start(x, y);
             }
+            
+            else if(shape != null && ((Draggable)shape).getShapeType().equals("RECTANGLE")){
+                ((DraggableRectangle)shape).started = true;
+                ((DraggableRectangle)shape).start(x, y);
+            }
 
             else if(shape != null && ((Draggable)shape).getShapeType().equals("TEXT")){
                 ((DraggableText)shape).started = true;
@@ -287,10 +324,11 @@ public class mmmData implements AppDataComponent{
     public void resetData() {
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
         setState(SELECTING_SHAPE);
-	newShape = null;
+        jTPS = new jTPS();
 	selectedShape = null;
         workspace.resetLineBox();
         workspace.resetStationBox();
+        workspace.resetRouteBoxes();
 
 	// INIT THE COLORS
 	currentFillColor = Color.web(WHITE_HEX);
@@ -299,5 +337,62 @@ public class mmmData implements AppDataComponent{
         metroLines.clear();
 	shapes.clear();
 	((mmmWorkspace)app.getWorkspaceComponent()).getCanvas().getChildren().clear();
+    }
+    
+     public void processBoldRequest(Shape shape){
+        
+        for(int i = 0; i < getTextShapes().size(); i++){
+            if(shape == getTextShapes().get(i)){
+                if(getTextShapes().get(i).isBolded() && !getTextShapes().get(i).isItalicized()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.NORMAL, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isBolded = false;
+                }
+                
+                else if(getTextShapes().get(i).isBolded() && getTextShapes().get(i).isItalicized()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.NORMAL, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isBolded = false;
+                }
+                
+                else if(!getTextShapes().get(i).isBolded() && !getTextShapes().get(i).isItalicized()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.BOLD, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isBolded = true;
+                }
+                
+                else if(!getTextShapes().get(i).isBolded() && getTextShapes().get(i).isItalicized()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.BOLD, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isBolded = true;
+                }
+            }
+        }
+    }
+    
+    public void processItalicsRequest(Shape shape){
+        for(int i = 0; i < getTextShapes().size(); i++){
+            if(shape == getTextShapes().get(i)){
+                if(getTextShapes().get(i).isItalicized() && !getTextShapes().get(i).isBolded()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.NORMAL, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isItalicized = false;
+                }
+                
+                else if(getTextShapes().get(i).isItalicized() && getTextShapes().get(i).isBolded()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.BOLD, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isItalicized = false;
+                }
+                
+                else if(!getTextShapes().get(i).isItalicized() && !getTextShapes().get(i).isBolded()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.NORMAL, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isItalicized = true;
+                }
+                
+                else if(!getTextShapes().get(i).isItalicized() && getTextShapes().get(i).isBolded()){
+                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.BOLD, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
+                    getTextShapes().get(i).isItalicized = true;
+                }
+            }
+        }
+    }
+    
+    public jTPS getJTPS(){
+        return jTPS;
     }
 }

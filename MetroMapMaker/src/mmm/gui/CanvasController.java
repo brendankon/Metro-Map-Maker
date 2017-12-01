@@ -17,6 +17,7 @@ import javafx.scene.text.Text;
 import mmm.data.Draggable;
 import static mmm.data.Draggable.ELLIPSE;
 import static mmm.data.Draggable.TEXT;
+import mmm.data.DraggableRectangle;
 import mmm.data.DraggableText;
 import mmm.data.MetroLine;
 import mmm.data.Station;
@@ -213,6 +214,12 @@ public class CanvasController {
                                 DraggableText text = (DraggableText)selectedDraggableShape;
                                 startX = (int)text.getX();
                                 startY = (int)text.getY();
+                            }
+                            
+                            else{
+                                DraggableRectangle rect = (DraggableRectangle)selectedDraggableShape;
+                                startX = (int)rect.getX();
+                                startY = (int)rect.getY();
                             }
 
                             startMouseX = x;
