@@ -31,7 +31,7 @@ public class AddShape_Transaction implements jTPS_Transaction {
     
     @Override
     public void undoTransaction(){
-        data.getShapes().remove(shape);
+        data.removeShape(shape);
     }
     
 }

@@ -25,6 +25,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.SnapshotParameters;
 import mmm.data.mmmData;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
@@ -50,8 +51,10 @@ import static mmm.data.Draggable.RECTANGLE;
 import static mmm.data.Draggable.TEXT;
 import mmm.data.DraggableRectangle;
 import mmm.data.DraggableText;
+import mmm.data.GridLine;
 import mmm.data.MetroLine;
 import mmm.data.Station;
+import mmm.gui.mapEditController;
 import mmm.gui.mmmWorkspace;
 
 /**
@@ -97,6 +100,7 @@ public class mmmFiles implements AppFileComponent{
     static final String JSON_STATIONS = "stations";
     static final String JSON_POSITION_NUMBER = "position_number";
     static final String JSON_IS_ROTATED = "is_rotated";
+    static final String JSON_BG_IMAGE = "bg_image";
     
     static final String DEFAULT_DOCTYPE_DECLARATION = "<!doctype html>\n";
     static final String DEFAULT_ATTRIBUTE_VALUE = "";
@@ -107,9 +111,17 @@ public class mmmFiles implements AppFileComponent{
     public void saveData(AppDataComponent data, String filePath) throws IOException {
         
         mmmData dataManager = (mmmData)data;
+        mmmWorkspace workspace = dataManager.getWorkspace();
+        mapEditController controller = workspace.getController();
+        
+        if(dataManager.getShapes().get(1) instanceof GridLine){
+            controller.processGridRequest();
+            workspace.getToggleGrid().setSelected(false);
+        }
         
         Color bgColor = dataManager.getBackgroundColor();
 	JsonObject bgColorJson = makeJsonColorObject(bgColor);
+        JsonObject bgImageJson = makeImageViewObject(dataManager);
         
         JsonArrayBuilder metroLinesBuilder = Json.createArrayBuilder();
 	ArrayList<MetroLine> metroLines = dataManager.getMetroLines();
@@ -126,8 +138,8 @@ public class mmmFiles implements AppFileComponent{
                     line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
                     line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
                     line.getStations().remove(0);
-                    dataManager.getShapes().remove(selectedShape);
-                    dataManager.getShapes().add(topLabel);
+                    dataManager.removeShape(selectedShape);
+                    dataManager.addShape(topLabel);
                 }
                 
                 else if(!dataManager.getShapes().contains(line.getBottomLabel())){
@@ -139,8 +151,8 @@ public class mmmFiles implements AppFileComponent{
                     line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
                     line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
                     line.getStations().remove(line.getStations().size()-1);
-                    dataManager.getShapes().remove(selectedShape);
-                    dataManager.getShapes().add(bottomLabel);
+                    dataManager.removeShape(selectedShape);
+                    dataManager.addShape(bottomLabel);
                 }
             }
         
@@ -202,7 +214,11 @@ public class mmmFiles implements AppFileComponent{
         JsonArrayBuilder shapesArray = Json.createArrayBuilder();
         for(Node node : shapes){
             
-            if(node instanceof Station && ((Station)node).getMetroLines().isEmpty()){
+            if(node instanceof ImageView){
+                
+            }
+            
+            else if(node instanceof Station && ((Station)node).getMetroLines().isEmpty()){
                 
                 Station s = (Station)node;
                 JsonObject colorJson = makeJsonColorObject((Color)s.getFill());
@@ -267,6 +283,7 @@ public class mmmFiles implements AppFileComponent{
         
         JsonObject dataManagerJSO = Json.createObjectBuilder()
                 .add(JSON_BG_COLOR, bgColorJson)
+                .add(JSON_BG_IMAGE, bgImageJson)
                 .add(JSON_METRO_LINES, metroLinesBuilder)
                 .add(JSON_SHAPES, shapesArray)
                 .add(JSON_STATIONS_OFF_LINE, stationsOffLineArray).build();
@@ -314,6 +331,24 @@ public class mmmFiles implements AppFileComponent{
         return textObject;
     }
     
+    private JsonObject makeImageViewObject(mmmData dataManager){
+        if(dataManager.getShapes().get(0) instanceof ImageView){
+            ImageView iv = (ImageView)dataManager.getShapes().get(0);
+            String path = dataManager.getImageString();
+            double x = iv.getX();
+            double y = iv.getY();
+            JsonObject imageViewObject = Json.createObjectBuilder()
+                    .add(JSON_IMAGE_FILL, path)
+                    .add(JSON_X, x)
+                    .add(JSON_Y, y).build();
+            return imageViewObject;
+        }
+        
+        JsonObject imageViewObject = Json.createObjectBuilder()
+                .add(JSON_IMAGE_FILL, "").build();
+        return imageViewObject;
+    }
+    
     private JsonObject makeJsonColorObject(Color color) {
 	JsonObject colorJson = Json.createObjectBuilder()
 		.add(JSON_RED, color.getRed())
@@ -332,6 +367,16 @@ public class mmmFiles implements AppFileComponent{
 	
         
         JsonObject json = loadJSONFile(filePath);
+        
+        JsonObject bgImage = json.getJsonObject(JSON_BG_IMAGE);
+        if(!bgImage.getString(JSON_IMAGE_FILL).equals("")){
+            Image i = new Image(bgImage.getString(JSON_IMAGE_FILL));
+            ImageView v = new ImageView(i);
+            v.setX(getDataAsDouble(bgImage, JSON_X));
+            v.setY(getDataAsDouble(bgImage, JSON_Y));
+            dataManager.getShapes().add(v);
+            dataManager.setImageString(bgImage.getString(JSON_IMAGE_FILL));
+        }
         
         Color bgColor = loadColor(json, JSON_BG_COLOR);
 	dataManager.setBackgroundColor(bgColor);
@@ -675,8 +720,8 @@ public class mmmFiles implements AppFileComponent{
                         line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
                         line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
                         line.getStations().remove(0);
-                        dataManager.getShapes().remove(selectedShape);
-                        dataManager.getShapes().add(topLabel);
+                        dataManager.removeShape(selectedShape);
+                        dataManager.addShape(topLabel);
                     }
 
                     else if(!dataManager.getShapes().contains(line.getBottomLabel())){
@@ -688,15 +733,16 @@ public class mmmFiles implements AppFileComponent{
                         line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
                         line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
                         line.getStations().remove(line.getStations().size()-1);
-                        dataManager.getShapes().remove(selectedShape);
-                        dataManager.getShapes().add(bottomLabel);
+                        dataManager.removeShape(selectedShape);
+                        dataManager.addShape(bottomLabel);
                     }
             }
             
             mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-            Pane canvas = workspace.getCanvas();
+            Pane canvas = workspace.getCenterPane();
             WritableImage image = canvas.snapshot(new SnapshotParameters(), null);
             File file = new File(filePath + "/" + gui.getCurrentFile().getName() + ".png");
+            workspace.getWorkspace().toBack();
             try {
                 ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
             }

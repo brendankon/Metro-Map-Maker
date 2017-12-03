@@ -25,6 +25,8 @@ import mmm.data.MetroLine;
 import mmm.data.DraggableText;
 import java.util.ArrayList;
 import java.util.Optional;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Group;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -34,8 +36,11 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.FlowPane;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
@@ -44,11 +49,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import jtps.jTPS;
 import jtps.jTPS_Transaction;
 import mmm.data.DraggableRectangle;
+import mmm.data.GridLine;
 import mmm.data.mmmState;
 import properties_manager.PropertiesManager;
 
@@ -60,7 +68,9 @@ public class mapEditController {
     
     AppTemplate app;
     mmmData dataManager;
-    ArrayList<Shape> copiedShapes;
+    ArrayList<GridLine> gridLinesV;
+    ArrayList<GridLine> gridLinesH;
+    double mapScale = 1;
     
     public mapEditController(AppTemplate initApp) {
 	app = initApp;
@@ -231,7 +241,7 @@ public class mapEditController {
                 station.setCenterY((selectedLine.getStartY() + selectedLine.getEndY())/2);
 
                 metroLine.getLines().remove(selectedLine);
-                dataManager.getShapes().remove(selectedLine);
+                dataManager.removeShape(selectedLine);
                 DraggableText topLabel = metroLine.getTopLabel();
                 DraggableText bottomLabel = metroLine.getBottomLabel();
 
@@ -257,7 +267,7 @@ public class mapEditController {
                 metroLine.addLine(bottomLine);
                 dataManager.addShape(topLine);
                 dataManager.addShape(bottomLine);
-                dataManager.getShapes().remove(station);
+                dataManager.removeShape(station);
                 dataManager.addShape(station);
             }
 
@@ -291,7 +301,7 @@ public class mapEditController {
 
                     metroLine.getLines().set(0, topLine);
                     metroLine.getLines().add(1, bottomLine);
-                    dataManager.getShapes().remove(removedLine);
+                    dataManager.removeShape(removedLine);
                     DraggableText topLabel = metroLine.getTopLabel();
 
                     topLine.startXProperty().bind(topLabel.xProperty().add(topLabel.getText().length()*10 + 30));
@@ -307,9 +317,9 @@ public class mapEditController {
                     metroLine.getStations().add(0, station);
                     dataManager.addShape(topLine);
                     dataManager.addShape(bottomLine);
-                    dataManager.getShapes().remove(minStation);
+                    dataManager.removeShape(minStation);
                     dataManager.addShape(minStation);
-                    dataManager.getShapes().remove(station);
+                    dataManager.removeShape(station);
                     dataManager.addShape(station);
                 }
 
@@ -328,7 +338,7 @@ public class mapEditController {
 
                     metroLine.getLines().set(metroLine.getLines().size()-1, topLine);
                     metroLine.getLines().add(bottomLine);
-                    dataManager.getShapes().remove(removedLine);
+                    dataManager.removeShape(removedLine);
                     DraggableText bottomLabel = metroLine.getBottomLabel();
 
                     topLine.startXProperty().bind(minStation.centerXProperty());
@@ -343,9 +353,9 @@ public class mapEditController {
                     metroLine.getStations().add(station);
                     dataManager.addShape(topLine);
                     dataManager.addShape(bottomLine);
-                    dataManager.getShapes().remove(minStation);
+                    dataManager.removeShape(minStation);
                     dataManager.addShape(minStation);
-                    dataManager.getShapes().remove(station);
+                    dataManager.removeShape(station);
                     dataManager.addShape(station);
                 }
 
@@ -364,7 +374,7 @@ public class mapEditController {
 
                     metroLine.getLines().set(metroLine.getStations().indexOf(minStation), topLine);
                     metroLine.getLines().add((metroLine.getStations().indexOf(minStation))+1,bottomLine);
-                    dataManager.getShapes().remove(removedLine);
+                    dataManager.removeShape(removedLine);
 
                     topLine.startXProperty().bind(metroLine.getStations().get((metroLine.getStations().indexOf(minStation))-1).centerXProperty());
                     topLine.startYProperty().bind(metroLine.getStations().get((metroLine.getStations().indexOf(minStation))-1).centerYProperty());
@@ -379,11 +389,11 @@ public class mapEditController {
                     metroLine.getStations().add(metroLine.getStations().indexOf(minStation), station);
                     dataManager.addShape(topLine);
                     dataManager.addShape(bottomLine);
-                    dataManager.getShapes().remove(minStation);
+                    dataManager.removeShape(minStation);
                     dataManager.addShape(minStation);
-                    dataManager.getShapes().remove(metroLine.getStations().get((metroLine.getStations().indexOf(minStation))-2));
+                    dataManager.removeShape(metroLine.getStations().get((metroLine.getStations().indexOf(minStation))-2));
                     dataManager.addShape(metroLine.getStations().get((metroLine.getStations().indexOf(minStation))-2));
-                    dataManager.getShapes().remove(station);
+                    dataManager.removeShape(station);
                     dataManager.addShape(station);
                 }
             }
@@ -417,7 +427,7 @@ public class mapEditController {
         metroLine.getLines().set(metroLine.getLines().indexOf(topRemovedLine), newLine);
         metroLine.getLines().remove(bottomRemovedLine);
         dataManager.getShapes().set(dataManager.getShapes().indexOf(topRemovedLine), newLine);
-        dataManager.getShapes().remove(bottomRemovedLine);
+        dataManager.removeShape(bottomRemovedLine);
         
         newLine.startXProperty().bind(topRemovedLine.startXProperty());
         newLine.startYProperty().bind(topRemovedLine.startYProperty());
@@ -426,7 +436,7 @@ public class mapEditController {
         
         if(metroLine.getStations().indexOf(station) != metroLine.getStations().size()-1){
             Station nextStation = metroLine.getStations().get(metroLine.getStations().indexOf(station)+1);
-            dataManager.getShapes().remove(nextStation);
+            dataManager.removeShape(nextStation);
             dataManager.addShape(nextStation);
         }
         metroLine.getStations().remove(station);
@@ -454,7 +464,7 @@ public class mapEditController {
             if(result.get() == ButtonType.OK){
                 
                 for(int i = 0; i < metroLine.getLines().size(); i++){
-                    dataManager.getShapes().remove(metroLine.getLines().get(i));
+                    dataManager.removeShape(metroLine.getLines().get(i));
                 }
                 
                 for(int j = 0; j < metroLine.getStations().size(); j++){
@@ -462,8 +472,8 @@ public class mapEditController {
                 }
                 
                 dataManager.getMetroLines().remove(metroLine);
-                dataManager.getShapes().remove(metroLine.getTopLabel());
-                dataManager.getShapes().remove(metroLine.getBottomLabel());
+                dataManager.removeShape(metroLine.getTopLabel());
+                dataManager.removeShape(metroLine.getBottomLabel());
                 workspace.lineBox.getItems().remove(metroLine.getName());
             }
             
@@ -484,20 +494,20 @@ public class mapEditController {
                 Station station = (Station)dataManager.getSelectedShape();
 
                 if(station.getMetroLines().isEmpty())
-                    dataManager.getShapes().remove(station);
+                    dataManager.removeShape(station);
 
                 else{ 
                     while(station.getMetroLines().size() > 0){
                         removeFromLine(station, station.getMetroLines().get(0));
                     }
-                    dataManager.getShapes().remove(station);
+                    dataManager.removeShape(station);
                 }
 
                 mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
                 workspace.stationsBox.getItems().remove(station.getName());
                 workspace.routeBox1.getItems().remove(station.getName());
                 workspace.routeBox2.getItems().remove(station.getName());
-                dataManager.getShapes().remove(station.getLabel());
+                dataManager.removeShape(station.getLabel());
             }
             
             if(result.get() == ButtonType.CANCEL){ }
@@ -506,14 +516,28 @@ public class mapEditController {
     
     public void processZoomInRequest(){
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-        workspace.getCanvas().setScaleX(workspace.getCanvas().getScaleX() + (workspace.getCanvas().getScaleX()*.2));
-        workspace.getCanvas().setScaleY(workspace.getCanvas().getScaleY() + (workspace.getCanvas().getScaleY()*.2));
+        FlowPane topToolbarPane = app.getGUI().getTopToolbarPane();
+        topToolbarPane.setMinWidth(app.getGUI().getPrimaryStage().getWidth());
+        topToolbarPane.setPrefWidth(app.getGUI().getPrimaryStage().getWidth());
+        topToolbarPane.setMaxWidth(USE_COMPUTED_SIZE);
+        workspace.getWorkspace().toBack();
+        Pane canvas = workspace.getCanvas();
+        canvas.setScaleX(canvas.getScaleX() + .1);
+        canvas.setScaleY(canvas.getScaleY() + .1);
+        mapScale = canvas.getScaleX();
     }
     
     public void processZoomOutRequest(){
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-        workspace.getCanvas().setScaleX(workspace.getCanvas().getScaleX() - (workspace.getCanvas().getScaleX()*.2));
-        workspace.getCanvas().setScaleY(workspace.getCanvas().getScaleY() - (workspace.getCanvas().getScaleY()*.2));
+        FlowPane topToolbarPane = app.getGUI().getTopToolbarPane();
+        topToolbarPane.setMinWidth(app.getGUI().getPrimaryStage().getWidth());
+        topToolbarPane.setPrefWidth(app.getGUI().getPrimaryStage().getWidth());
+        topToolbarPane.setMaxWidth(USE_COMPUTED_SIZE);
+        workspace.getWorkspace().toBack();
+        Pane canvas = workspace.getCanvas();
+        canvas.setScaleX(canvas.getScaleX() - .1);
+        canvas.setScaleY(canvas.getScaleY() - .1);
+        mapScale = canvas.getScaleX();
     }
     
     public void processEditLineRequest(){
@@ -538,6 +562,7 @@ public class mapEditController {
             TextField t = new TextField();
             t.setLayoutX(90);
             t.setLayoutY(100);
+            String lineName = metroLine.getName();
             t.setText(metroLine.getName());
             ColorPicker p = new ColorPicker();
             p.setValue(Color.BLACK);
@@ -572,6 +597,23 @@ public class mapEditController {
                 editLineStage.close();
                 String name = t.getText();
                 Color fill = p.getValue();
+                
+                for(int i = 0; i < dataManager.getMetroLines().size(); i++){
+                    if(dataManager.getMetroLines().get(i).getName().equals(name) && !name.equals(lineName)){
+
+                        Alert alert = new Alert(AlertType.WARNING, "Error: line name already exists. Do you wish to enter a new name?",ButtonType.OK, ButtonType.CANCEL);
+                        alert.setHeaderText("Name Already Exists");
+
+                        Optional<ButtonType> result = alert.showAndWait();
+                        if(result.get() == ButtonType.OK){
+                            processEditLineRequest();
+                            return;
+                        }
+                        else if(result.get() == ButtonType.CANCEL){
+                            return;
+                        }
+                    }
+                }
                 
                 for(int i = 0; i < editMetroLine.getLines().size(); i++){
                     editMetroLine.getLines().get(i).setStroke(fill);
@@ -729,10 +771,117 @@ public class mapEditController {
         }
     }
     
+    public void processGridRequest(){
+        
+        if(dataManager.getShapes().isEmpty() || (!(dataManager.getShapes().get(0) instanceof GridLine) && !(dataManager.getShapes().get(1) instanceof GridLine))){
+            gridLinesV = new ArrayList<>();
+            gridLinesH = new ArrayList<>();
+
+            for(int i = 1; i < 100; i++){
+                GridLine line1 = new GridLine();
+                line1.setStartX(i * 100);
+                line1.setEndX(i * 100);
+                line1.setStartY(0);
+                line1.setEndY(5000);
+                line1.setStrokeWidth(2);
+                line1.setStroke(Color.BLACK);
+                gridLinesV.add(line1);
+
+                GridLine line2 = new GridLine();
+                line2.setStartX(0);
+                line2.setEndX(10000);
+                line2.setStartY(i * 100);
+                line2.setEndY(i * 100);
+                line2.setStrokeWidth(2);
+                line2.setStroke(Color.BLACK);
+                gridLinesH.add(line2);
+            }
+            
+            if(dataManager.getShapes().isEmpty() || !(dataManager.getShapes().get(0) instanceof ImageView)){
+                for(int j = 0; j < gridLinesV.size(); j++){
+                    dataManager.getShapes().add(j, gridLinesV.get(j));
+                    dataManager.getShapes().add(j, gridLinesH.get(j));
+                }
+            }
+            
+            else{
+                for(int j = 1; j < gridLinesV.size(); j++){
+                    dataManager.getShapes().add(j, gridLinesV.get(j-1));
+                    dataManager.getShapes().add(j, gridLinesH.get(j-1));
+                }
+            }
+            
+        }
+        
+        else{
+            for(int i = 0; i < gridLinesV.size(); i++){
+                dataManager.removeShape(gridLinesV.get(i));
+                dataManager.removeShape(gridLinesH.get(i));
+            }
+        }
+    }
+    
     public void processSelectOutlineThickness(Slider selectedSlider) {
 	int outlineThickness = (int)selectedSlider.getValue();
 	dataManager.setCurrentOutlineThickness(outlineThickness);
 	app.getGUI().updateToolbarControls(false);
+    }
+    
+    public void processSnapToGridRequest(){
+        
+        if(dataManager.getSelectedShape() instanceof Station){
+            if(dataManager.getShapes().get(1) instanceof GridLine){
+                
+                Shape selectedShape = dataManager.getSelectedShape();
+                Station station = (Station)dataManager.getSelectedShape();
+                double newX;
+                double newY;
+                
+                if(station.getX() % 100 < 50)
+                    newX = station.getX() - (station.getX() % 100);
+                else
+                    newX = station.getX() + (100 - (station.getX() % 100));
+                
+                if(station.getY() % 100 < 50)
+                    newY = station.getY() - (station.getY() % 100);
+                else
+                    newY = station.getY() + (100 - (station.getY() % 100));
+                
+                station.setCenterX(newX);
+                station.setCenterY(newY);
+                
+                if(selectedShape instanceof Station && ((Station)selectedShape).isEndLabel()){
+                    MetroLine line = ((Station)selectedShape).getMetroLines().get(0);
+                    if(!dataManager.getShapes().contains(line.getTopLabel())){
+                        line.getLines().get(0).startXProperty().unbind();
+                        line.getLines().get(0).startYProperty().unbind();
+                        DraggableText topLabel = line.getTopLabel();
+                        topLabel.setX(((Station)selectedShape).getCenterX());
+                        topLabel.setY(((Station)selectedShape).getCenterY());
+                        line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
+                        line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
+                        line.getStations().remove(0);
+                        dataManager.getShapes().remove(selectedShape);
+                        dataManager.getShapes().add(topLabel);
+                    }
+
+                    else if(!dataManager.getShapes().contains(line.getBottomLabel())){
+                        line.getLines().get(line.getLines().size()-1).endXProperty().unbind();
+                        line.getLines().get(line.getLines().size()-1).endYProperty().unbind();
+                        DraggableText bottomLabel = line.getBottomLabel();
+                        bottomLabel.setX(((Station)selectedShape).getCenterX());
+                        bottomLabel.setY(((Station)selectedShape).getCenterY());
+                        line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
+                        line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
+                        line.getStations().remove(line.getStations().size()-1);
+                        dataManager.getShapes().remove(selectedShape);
+                        dataManager.getShapes().add(bottomLabel);
+                    }
+                }
+                dataManager.unhighlightShape(station);
+                dataManager.setSelectedShape(null);
+            }
+        }
     }
     
     public void processStationColorRequest(){
@@ -800,6 +949,48 @@ public class mapEditController {
             workspace.undoButton.setDisable(false);
             dataManager.getTextShapes().add(text);
         }    
+    }
+    
+    public void processImageBackgroundRequest(){
+        
+        Alert alert = new Alert(AlertType.CONFIRMATION, "Would you like to set an image background?",ButtonType.YES, ButtonType.NO);
+                        alert.setHeaderText("Set Image Background");
+
+                        Optional<ButtonType> result = alert.showAndWait();
+                        if(result.get() == ButtonType.YES){
+                            setImageBackground();
+                            return;
+                        }
+                        else if(result.get() == ButtonType.NO){
+                            if(dataManager.getShapes().get(0) instanceof ImageView){
+                                dataManager.getShapes().remove(dataManager.getShapes().get(0));
+                            }
+                            return;
+                        }
+        
+    }
+    
+    public void setImageBackground(){
+        
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        FileChooser fc = new FileChooser();
+        fc.setInitialDirectory(new File(PATH_IMAGES));
+        File selectedFile = fc.showOpenDialog(app.getGUI().getWindow());
+                  
+            if(selectedFile != null){
+                
+                if(!dataManager.getShapes().isEmpty() &&  dataManager.getShapes().get(0) instanceof ImageView){
+                    dataManager.getShapes().remove(0);
+                }
+                
+                Image image = new Image(selectedFile.toURI().toString());
+                dataManager.setImageString(selectedFile.toURI().toString());
+                ImageView v = new ImageView(image);
+                Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+                v.setX(workspace.getWorkspace().getWidth()/2 - 300 - image.getWidth()/2);
+                v.setY(workspace.getWorkspace().getHeight()/2 - image.getHeight()/2);
+                dataManager.getShapes().add(0, v);
+            } 
     }
     
     public void processUndoRequest(){

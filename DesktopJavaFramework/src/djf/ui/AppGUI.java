@@ -191,6 +191,7 @@ public class AppGUI {
      */
     private void initTopToolbar(AppTemplate app) {
         fileToolbar = new FlowPane();
+        
 
         // HERE ARE OUR FILE TOOLBAR BUTTONS, NOTE THAT SOME WILL
         // START AS ENABLED (false), WHILE OTHERS DISABLED (true)

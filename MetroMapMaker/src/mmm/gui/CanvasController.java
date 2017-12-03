@@ -10,6 +10,8 @@ import djf.controller.AppFileController;
 import java.util.ArrayList;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.layout.FlowPane;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
@@ -50,6 +52,7 @@ public class CanvasController {
             mapEditController controller = new mapEditController(app);
             mmmData dataManager = (mmmData) app.getDataComponent();
             mmmWorkspace workspace = (mmmWorkspace) app.getWorkspaceComponent();
+            workspace.getWorkspace().toBack();
             if (dataManager.isInState(SELECTING_SHAPE)) {
                 // SELECT THE TOP SHAPE
                 Shape shape = dataManager.selectTopShape(x, y);
@@ -64,6 +67,7 @@ public class CanvasController {
                                 for(int l = 0; l < dataManager.getMetroLines().get(i).getLines().size(); l++){
                                     dataManager.highlightShape(dataManager.getMetroLines().get(i).getLines().get(l));
                                 }
+                                workspace.updateEditToolbar(true, false, false, false, false);
                             }
                         }
                     }
@@ -76,15 +80,33 @@ public class CanvasController {
                     
                     workspace.lineBox.setValue("");
                     if(shape instanceof Station){
+                        Station station = (Station)shape;
                         if(workspace.stationsBox.getValue() == null || !workspace.stationsBox.getValue().equals(((Station)shape).getName()))
                             workspace.stationsBox.setValue(((Station)shape).getName());
+                        
+                        if(station.isEndLabel())
+                            workspace.updateEditToolbar(false, false , false, false, true);
+                        else
+                            workspace.updateEditToolbar(false, true , false, false, false);
                     }
                     
                     if(shape instanceof Text){
                         workspace.stationsBox.setValue("");
+                        if(!(shape instanceof DraggableText))
+                            workspace.updateEditToolbar(false, false, false, false, false);
+                    }
+                    
+                    if(shape instanceof DraggableRectangle){
+                        workspace.updateEditToolbar(false, false, false, true, false);
+                        workspace.stationsBox.setValue("");
+                        workspace.lineBox.setValue("");
                     }
                     
                     if(shape instanceof DraggableText){
+                        
+                        if(((DraggableText)shape).getLineName() == null)
+                            workspace.updateEditToolbar(false, false, true, false, false);
+                        
                         for(int i = 0; i < dataManager.getMetroLines().size(); i++){
                             if(dataManager.getMetroLines().get(i).getTopLabel() == (DraggableText) shape){
                                 Station lineEnd = new Station("");
@@ -97,12 +119,13 @@ public class CanvasController {
                                 dataManager.getMetroLines().get(i).getLines().get(0).startXProperty().bind(lineEnd.centerXProperty());
                                 dataManager.getMetroLines().get(i).getLines().get(0).startYProperty().bind(lineEnd.centerYProperty());
                                 lineEnd.addMetroLine(dataManager.getMetroLines().get(i));
-                                dataManager.getShapes().remove(dataManager.getMetroLines().get(i).getTopLabel());
+                                dataManager.removeShape(dataManager.getMetroLines().get(i).getTopLabel());
                                 dataManager.addShape(lineEnd);
                                 dataManager.selectTopShape(x,y);
                                 scene.setCursor(Cursor.DEFAULT);
                                 dataManager.setState(mmmState.SELECTING_SHAPE);
                                 dataManager.getMetroLines().get(i).getStations().add(0, lineEnd);
+                                workspace.updateEditToolbar(false, false, false, false, false);
                                 break;
                             }
                             
@@ -118,12 +141,13 @@ public class CanvasController {
                                 line.getLines().get(line.getLines().size()-1).endXProperty().bind(lineEnd.centerXProperty());
                                 line.getLines().get(line.getLines().size()-1).endYProperty().bind(lineEnd.centerYProperty());
                                 lineEnd.addMetroLine(line);
-                                dataManager.getShapes().remove(dataManager.getMetroLines().get(i).getBottomLabel());
+                                dataManager.removeShape(dataManager.getMetroLines().get(i).getBottomLabel());
                                 dataManager.addShape(lineEnd);
                                 dataManager.selectTopShape(x,y);
                                 scene.setCursor(Cursor.DEFAULT);
                                 dataManager.setState(mmmState.SELECTING_SHAPE);
                                 dataManager.getMetroLines().get(i).getStations().add(lineEnd);
+                                workspace.updateEditToolbar(false, false, false, false, false);
                                 break;
                             }
                         }
@@ -136,6 +160,7 @@ public class CanvasController {
                     scene.setCursor(Cursor.DEFAULT);
                     dataManager.setState(DRAGGING_NOTHING);
                     app.getWorkspaceComponent().reloadWorkspace(dataManager);
+                    workspace.updateEditToolbar(false, false, false, false, false);
 
                 }  
                 workspace.reloadWorkspace(dataManager);
@@ -196,8 +221,6 @@ public class CanvasController {
         
         public void processCanvasMouseDragged(int x, int y) {
             mmmData dataManager = (mmmData) app.getDataComponent();
-            
-            if(x > 0 && y > 0){
                 if (dataManager.isInState(DRAGGING_SHAPE)) {
                     if(dataManager.getSelectedShape() instanceof Draggable){
                         Draggable selectedDraggableShape = (Draggable) dataManager.getSelectedShape();
@@ -228,7 +251,6 @@ public class CanvasController {
                         app.getGUI().updateToolbarControls(false);
                     }
             }
-        }
     }
         
     public void processCanvasMouseRelease(int x, int y) {

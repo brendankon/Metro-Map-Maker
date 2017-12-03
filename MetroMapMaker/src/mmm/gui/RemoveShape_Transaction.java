@@ -63,7 +63,7 @@ public class RemoveShape_Transaction implements jTPS_Transaction{
 
         @Override
         public void doTransaction(){    
-            data.getShapes().remove(shape);
+            data.removeShape(shape);
         }
 
         @Override

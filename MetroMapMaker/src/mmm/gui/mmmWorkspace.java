@@ -93,6 +93,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -122,6 +123,7 @@ import mmm.data.Station;
 @SuppressWarnings("unchecked")
 public class mmmWorkspace extends AppWorkspaceComponent{
     
+    Pane centerPane;
     AppTemplate app;
     AppGUI gui;
     VBox editToolbar;
@@ -460,11 +462,17 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         canvas.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
         canvas.prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
         canvas.setBorder(editToolbar.getBorder());
-
+        centerPane = new Pane();
+        centerPane.getChildren().add(canvas);
+        centerPane.setBackground(new Background(new BackgroundFill((Paint)Color.WHITE, null, null)));
+        
         workspace = new BorderPane();
+        workspace.setBackground(new Background(new BackgroundFill((Paint)Color.WHITE, null, null)));
+        ((BorderPane)workspace).setCenter(centerPane);
         ((BorderPane)workspace).setLeft(editToolbar);
-        ((BorderPane)workspace).setCenter(canvas);
+        
         controls();
+        updateEditToolbar(false, false, false, false, false);
         
         mmmData data = (mmmData)app.getDataComponent();
         data.setShapes(canvas.getChildren());
@@ -472,6 +480,22 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     
     public Pane getCanvas(){
         return canvas;
+    }
+    
+    public Pane getCenterPane(){
+        return centerPane;
+    }
+    
+    public Pane getWorkspace(){
+        return workspace;
+    }
+    
+    public CheckBox getToggleGrid(){
+        return toggleGrid;
+    }
+    
+    public mapEditController getController(){
+        return controller;
     }
     
     public ColorPicker getBackgroundColorPicker(){
@@ -604,6 +628,12 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         stationColorPicker.setOnAction(e ->{
             controller.processStationColorRequest();
         });
+        toggleGrid.setOnAction(e ->{
+            controller.processGridRequest();
+        });
+        setImgBackgroundButton.setOnAction(e ->{
+           controller.processImageBackgroundRequest(); 
+        });
         fontStyleBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
             jTPS j = data.getJTPS();
             jTPS_Transaction transaction = new ChangeText_Transaction(null,null, t1,t, false, false, (DraggableText)data.getSelectedShape(), app, "");
@@ -654,6 +684,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         zoomOutButton.setOnAction(e ->{
            controller.processZoomOutRequest(); 
         });
+        snapButton.setOnAction(e ->{
+            controller.processSnapToGridRequest();
+        });
         
         lineBox.valueProperty().addListener(new ChangeListener<String>(){
             @Override
@@ -661,6 +694,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                 
                 if(t1 != null && !t1.equals("")){
                     stationsBox.setValue("");
+                    updateEditToolbar(true, false, false, false, false);
                     for(int i = 0; i < data.getMetroLines().size(); i++){
                         if(t1.equals(data.getMetroLines().get(i).getName())){
                             if(data.getSelectedShape() != null){
@@ -678,8 +712,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                                             line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
                                             line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
                                             line.getStations().remove(0);
-                                            data.getShapes().remove(selectedShape);
-                                            data.getShapes().add(topLabel);
+                                            data.removeShape(selectedShape);
+                                            data.addShape(topLabel);
                                         }
 
                                         else if(!data.getShapes().contains(line.getBottomLabel())){
@@ -691,8 +725,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                                             line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
                                             line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
                                             line.getStations().remove(line.getStations().size()-1);
-                                            data.getShapes().remove(selectedShape);
-                                            data.getShapes().add(bottomLabel);
+                                            data.removeShape(selectedShape);
+                                            data.addShape(bottomLabel);
                                         }
                                     }
                             }
@@ -730,6 +764,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                 
                 if(t1 != null && !t1.equals("")){
                     lineBox.setValue("");
+                    updateEditToolbar(false, true, false, false, false);
                     for(int i = 0; i < data.getShapes().size(); i++){
                         if(data.getShapes().get(i) instanceof Station){
                             if(((Station)data.getShapes().get(i)).getName().equals(t1)){
@@ -748,8 +783,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                                             line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
                                             line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
                                             line.getStations().remove(0);
-                                            data.getShapes().remove(selectedShape);
-                                            data.getShapes().add(topLabel);
+                                            data.removeShape(selectedShape);
+                                            data.addShape(topLabel);
                                         }
 
                                         else if(!data.getShapes().contains(line.getBottomLabel())){
@@ -761,8 +796,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                                             line.getLines().get(line.getLines().size()-1).endXProperty().bind(bottomLabel.xProperty().subtract( 20));
                                             line.getLines().get(line.getLines().size()-1).endYProperty().bind(bottomLabel.yProperty().subtract(5));
                                             line.getStations().remove(line.getStations().size()-1);
-                                            data.getShapes().remove(selectedShape);
-                                            data.getShapes().add(bottomLabel);
+                                            data.removeShape(selectedShape);
+                                            data.addShape(bottomLabel);
                                         }
                                     }
                                 }
@@ -1001,6 +1036,36 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                 }
             }
         }
+    }
+    
+    public void updateEditToolbar(boolean isLine, boolean isStation, boolean isText, boolean isImage, boolean isEndLabel){
+
+            editLineButton.setDisable(!isLine);
+            removeLineButton.setDisable(!isLine);
+            addStationToLineButton.setDisable(!isLine);
+            removeStationFromLineButton.setDisable(!isLine);
+            lineThicknessSlider.setDisable(!isLine);
+            
+            removeStationButton.setDisable(!isStation);
+            stationColorPicker.setDisable(!isStation);
+            snapButton.setDisable(!(isStation || isEndLabel));
+            moveLabelButton.setDisable(!isStation);
+            rotateButton.setDisable(!isStation);
+            stationRadiusSlider.setDisable(!isStation);
+            
+            removeStationButton.setDisable(isEndLabel || !isStation);
+            stationColorPicker.setDisable(isEndLabel || !isStation);
+            moveLabelButton.setDisable(isEndLabel || !isStation);
+            rotateButton.setDisable(isEndLabel || !isStation);
+            stationRadiusSlider.setDisable(isEndLabel || !isStation);
+            
+            removeElementButton.setDisable(!(isText || isImage));
+            
+            boldButton.setDisable(!isText);
+            italicsButton.setDisable(!isText);
+            fontSizeBox.setDisable(!isText);
+            fontStyleBox.setDisable(!isText);
+
     }
     
     @Override

@@ -21,9 +21,11 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import static javafx.collections.FXCollections.observableArrayList;
+import javafx.scene.Group;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
@@ -64,6 +66,7 @@ public class mmmData implements AppDataComponent{
     Color currentFillColor;
     Color currentOutlineColor;
     double currentBorderWidth;
+    String imageString;
 
     // CURRENT STATE OF THE APP
     mmmState state;
@@ -119,6 +122,14 @@ public class mmmData implements AppDataComponent{
     
     public void addMetroLine(MetroLine line){
         metroLines.add(line);
+    }
+    
+    public void setImageString(String s){
+        imageString = s;
+    }
+    
+    public String getImageString(){
+        return imageString;
     }
     
     public ArrayList<MetroLine> getMetroLines(){
@@ -181,6 +192,12 @@ public class mmmData implements AppDataComponent{
 	}
     }
     
+    public void removeShape(Shape shape){
+        if(shape != null){
+            shapes.remove(shape);
+        }
+    }
+    
     public void unhighlightShape(Shape shape) {
 	selectedShape.setEffect(null);
     }
@@ -221,10 +238,16 @@ public class mmmData implements AppDataComponent{
 	BackgroundFill fill = new BackgroundFill(backgroundColor, null, null);
 	Background background = new Background(fill);
 	canvas.setBackground(background);
+        workspace.getWorkspace().setBackground(background);
+        workspace.getCenterPane().setBackground(background);
     }
     
     public Shape selectTopShape(int x, int y) {
 	Shape shape = getTopShape(x, y);
+        
+        if(shape instanceof GridLine)
+            return null;
+        
 	if (shape == selectedShape){
                 return shape;
         }
@@ -304,10 +327,12 @@ public class mmmData implements AppDataComponent{
     
     public Shape getTopShape(int x, int y) {
 	for (int i = shapes.size() - 1; i >= 0; i--) {
-	    Shape shape = (Shape)shapes.get(i);
-	    if (shape.contains(x, y)) {
-		return shape;
-	    }
+            if(!(shapes.get(i) instanceof ImageView)){
+                Shape shape = (Shape)shapes.get(i);
+                if (shape.contains(x, y)) {
+                    return shape;
+                }
+            }
 	}
 	return null;
     }
