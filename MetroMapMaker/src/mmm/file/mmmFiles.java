@@ -101,6 +101,7 @@ public class mmmFiles implements AppFileComponent{
     static final String JSON_POSITION_NUMBER = "position_number";
     static final String JSON_IS_ROTATED = "is_rotated";
     static final String JSON_BG_IMAGE = "bg_image";
+    static final String JSON_IS_CIRCULAR = "is_circular";
     
     static final String DEFAULT_DOCTYPE_DECLARATION = "<!doctype html>\n";
     static final String DEFAULT_ATTRIBUTE_VALUE = "";
@@ -197,9 +198,12 @@ public class mmmFiles implements AppFileComponent{
             double topLabelY = i.getTopLabel().getY();
             double bottomLabelX = i.getBottomLabel().getX();
             double bottomLabelY = i.getBottomLabel().getY();
-            
+            double isCircular = 0;
+            if(i.isCircular())
+                isCircular = 1;
             JsonObject metroLineJson = Json.createObjectBuilder()
                     .add(JSON_NAME, name)
+                    .add(JSON_IS_CIRCULAR, isCircular)
                     .add(JSON_TOP_LABEL_X, topLabelX)
                     .add(JSON_TOP_LABEL_Y, topLabelY)
                     .add(JSON_BOTTOM_LABEL_X, bottomLabelX)
@@ -428,7 +432,15 @@ public class mmmFiles implements AppFileComponent{
                 }
                 
                 dataManager.addShape(line.getLines().get(x));
+                
             }
+            
+            if(line.isCircular()){
+                    Line endLine = line.getLines().get(line.getLines().size()-1);
+                    endLine.endXProperty().bind(line.getTopLabel().xProperty().add(line.getName().length()*10 + 30));
+                    endLine.endYProperty().bind(line.getTopLabel().yProperty().subtract(5));
+                    dataManager.getShapes().remove(line.getBottomLabel());
+                }
                
         }
         
@@ -553,6 +565,7 @@ public class mmmFiles implements AppFileComponent{
         boolean isInList = false;
         mmmData dataManager = (mmmData)data;
         String name = obj.getString(JSON_NAME);
+        double isCircular = getDataAsDouble(obj, JSON_IS_CIRCULAR);
         MetroLine metroLine = new MetroLine(name);
         JsonArray lineArray = obj.getJsonArray(JSON_LINES_ARRAY);
         for(int i = 0; i < lineArray.size(); i++){
@@ -596,6 +609,7 @@ public class mmmFiles implements AppFileComponent{
         metroLine.addTopLabel(topLabel);
         metroLine.addBottomLabel(bottomLabel);
         dataManager.addMetroLine(metroLine);
+        metroLine.setIsCircular(isCircular == 1);
         return metroLine;
     }
     
@@ -706,7 +720,14 @@ public class mmmFiles implements AppFileComponent{
         
         mmmData dataManager = (mmmData)data;
         AppGUI gui = app.getGUI();
+        mmmWorkspace workspace = dataManager.getWorkspace();
+        mapEditController controller = workspace.getController();
         if(gui.getCurrentFile() != null){
+            
+            if(dataManager.getShapes().get(1) instanceof GridLine){
+                controller.processGridRequest();
+                workspace.getToggleGrid().setSelected(false);
+            }
             
             Shape selectedShape = dataManager.getSelectedShape();
             if(selectedShape instanceof Station && ((Station)selectedShape).isEndLabel()){
@@ -738,7 +759,6 @@ public class mmmFiles implements AppFileComponent{
                     }
             }
             
-            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
             Pane canvas = workspace.getCenterPane();
             WritableImage image = canvas.snapshot(new SnapshotParameters(), null);
             File file = new File(filePath + "/" + gui.getCurrentFile().getName() + ".png");
@@ -760,7 +780,7 @@ public class mmmFiles implements AppFileComponent{
                 }
                 
                 String lineName = dataManager.getMetroLines().get(i).getName();
-                boolean isCircular = false;
+                boolean isCircular = dataManager.getMetroLines().get(i).isCircular();
                 Color lineColor = (Color)dataManager.getMetroLines().get(i).getLines().get(0).getStroke();
                 JsonObject lineColorJson = makeJsonColorObject(lineColor);
                 JsonObject lineObject = Json.createObjectBuilder()

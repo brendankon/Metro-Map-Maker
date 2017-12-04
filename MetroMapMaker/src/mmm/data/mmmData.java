@@ -265,6 +265,11 @@ public class mmmData implements AppDataComponent{
                     topLabel.setY(((Station)selectedShape).getCenterY());
                     line.getLines().get(0).startXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
                     line.getLines().get(0).startYProperty().bind(topLabel.yProperty().subtract(5));
+                    
+                    if(line.isCircular()){
+                        line.getLines().get(line.getLines().size()-1).endXProperty().bind(topLabel.xProperty().add(line.getName().length()*10 + 30));
+                        line.getLines().get(line.getLines().size()-1).endYProperty().bind(topLabel.yProperty().subtract(5));
+                    }
                     line.getStations().remove(0);
                     shapes.remove(selectedShape);
                     shapes.add(topLabel);

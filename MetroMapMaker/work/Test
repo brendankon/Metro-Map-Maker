@@ -7,30 +7,108 @@
         "alpha":1.0
     },
     "bg_image":{
-        "image_fill":"file:/C:/Users/brendan/Documents/NetBeansProjects/CSE_219_MetroMapMaker/MetroMapMaker/images/tumblr_lg7h9gpbtP1qap9qio1_500.jpeg",
-        "x":722.0,
-        "y":200.0
+        "image_fill":""
     },
     "lines":[
+        {
+            "name":"Hi",
+            "is_circular":1.0,
+            "top_label_x":445.0,
+            "top_label_y":230.0,
+            "bottom_label_x":943.0,
+            "bottom_label_y":295.0,
+            "lines_array":[
+                {
+                    "fill_color":{
+                        "red":0.0,
+                        "green":0.0,
+                        "blue":0.0,
+                        "alpha":1.0
+                    },
+                    "outline_thickness":5.0
+                },
+                {
+                    "fill_color":{
+                        "red":0.0,
+                        "green":0.0,
+                        "blue":0.0,
+                        "alpha":1.0
+                    },
+                    "outline_thickness":5.0
+                },
+                {
+                    "fill_color":{
+                        "red":0.0,
+                        "green":0.0,
+                        "blue":0.0,
+                        "alpha":1.0
+                    },
+                    "outline_thickness":5.0
+                },
+                {
+                    "fill_color":{
+                        "red":0.0,
+                        "green":0.0,
+                        "blue":0.0,
+                        "alpha":1.0
+                    },
+                    "outline_thickness":5.0
+                }
+            ],
+            "stations_array":[
+                {
+                    "name":"C",
+                    "fill_color":{
+                        "red":1.0,
+                        "green":1.0,
+                        "blue":1.0,
+                        "alpha":1.0
+                    },
+                    "outline_thickness":2.0,
+                    "x":321.0,
+                    "y":339.0,
+                    "width":10.0,
+                    "position_number":0.0,
+                    "is_rotated":0.0,
+                    "height":10.0
+                },
+                {
+                    "name":"A",
+                    "fill_color":{
+                        "red":1.0,
+                        "green":1.0,
+                        "blue":1.0,
+                        "alpha":1.0
+                    },
+                    "outline_thickness":2.0,
+                    "x":557.0,
+                    "y":388.0,
+                    "width":10.0,
+                    "position_number":0.0,
+                    "is_rotated":0.0,
+                    "height":10.0
+                },
+                {
+                    "name":"B",
+                    "fill_color":{
+                        "red":1.0,
+                        "green":1.0,
+                        "blue":1.0,
+                        "alpha":1.0
+                    },
+                    "outline_thickness":2.0,
+                    "x":598.0,
+                    "y":286.0,
+                    "width":10.0,
+                    "position_number":0.0,
+                    "is_rotated":0.0,
+                    "height":10.0
+                }
+            ]
+        }
     ],
     "shapes":[
     ],
     "stations_off_line":[
-        {
-            "name":"A",
-            "fill_color":{
-                "red":1.0,
-                "green":1.0,
-                "blue":1.0,
-                "alpha":1.0
-            },
-            "outline_thickness":2.0,
-            "x":530.0,
-            "y":348.0,
-            "width":10.0,
-            "position_number":0.0,
-            "is_rotated":0.0,
-            "height":10.0
-        }
     ]
 }

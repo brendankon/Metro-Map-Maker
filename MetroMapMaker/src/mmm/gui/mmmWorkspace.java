@@ -465,6 +465,8 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         centerPane = new Pane();
         centerPane.getChildren().add(canvas);
         centerPane.setBackground(new Background(new BackgroundFill((Paint)Color.WHITE, null, null)));
+        centerPane.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
+        centerPane.prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
         
         workspace = new BorderPane();
         workspace.setBackground(new Background(new BackgroundFill((Paint)Color.WHITE, null, null)));

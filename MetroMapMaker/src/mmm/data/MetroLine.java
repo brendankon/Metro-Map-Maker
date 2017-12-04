@@ -15,6 +15,7 @@ public class MetroLine {
     ArrayList<Station> stations;
     DraggableText topLabel;
     DraggableText bottomLabel;
+    boolean isCircular;
     
     public MetroLine(String name){
         
@@ -23,6 +24,7 @@ public class MetroLine {
         stations = new ArrayList<>();
         Line startLine = new Line();
         lines.add(startLine);
+        isCircular = false;
         
     }
     
@@ -64,6 +66,14 @@ public class MetroLine {
     
     public void setName(String s){
         name = s;
+    }
+    
+    public void setIsCircular(boolean b){
+        isCircular = b;
+    }
+    
+    public boolean isCircular(){
+        return isCircular;
     }
 
        

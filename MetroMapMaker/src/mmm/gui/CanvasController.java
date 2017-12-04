@@ -126,6 +126,11 @@ public class CanvasController {
                                 dataManager.setState(mmmState.SELECTING_SHAPE);
                                 dataManager.getMetroLines().get(i).getStations().add(0, lineEnd);
                                 workspace.updateEditToolbar(false, false, false, false, false);
+                                
+                                if(dataManager.getMetroLines().get(i).isCircular()){
+                                    dataManager.getMetroLines().get(i).getLines().get(dataManager.getMetroLines().get(i).getLines().size()-1).endXProperty().bind(lineEnd.centerXProperty());
+                                    dataManager.getMetroLines().get(i).getLines().get(dataManager.getMetroLines().get(i).getLines().size()-1).endYProperty().bind(lineEnd.centerYProperty());
+                                }
                                 break;
                             }
                             

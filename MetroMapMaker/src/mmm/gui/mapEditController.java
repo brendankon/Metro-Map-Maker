@@ -31,6 +31,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
@@ -357,6 +358,13 @@ public class mapEditController {
                     dataManager.addShape(minStation);
                     dataManager.removeShape(station);
                     dataManager.addShape(station);
+                    
+                    if(metroLine.isCircular()){
+                        Line endLine = metroLine.getLines().get(metroLine.getLines().size()-1);
+                        endLine.endXProperty().bind(metroLine.getTopLabel().xProperty().add(metroLine.getName().length()*10 + 30));
+                        endLine.endYProperty().bind(metroLine.getTopLabel().yProperty().subtract(5));
+                        dataManager.getShapes().remove(metroLine.getBottomLabel());
+                    }
                 }
 
                 else{
@@ -566,9 +574,16 @@ public class mapEditController {
             t.setText(metroLine.getName());
             ColorPicker p = new ColorPicker();
             p.setValue(Color.BLACK);
-            p.setLayoutX(100);
-            p.setLayoutY(150);
+            p.setLayoutX(40);
+            p.setLayoutY(170);
             p.setValue((Color)metroLine.getLines().get(0).getStroke());
+            CheckBox circular = new CheckBox();
+            circular.setSelected(metroLine.isCircular());
+            circular.setLayoutX(200);
+            circular.setLayoutY(175);
+            Text circularText = new Text("Circular");
+            circularText.setLayoutX(230);
+            circularText.setLayoutY(185);
             Button ok = new Button("OK");
             Button cancel = new Button("Cancel");
             ok.setLayoutX(100);
@@ -579,6 +594,8 @@ public class mapEditController {
             editLinePane.getChildren().add(content);
             editLinePane.getChildren().add(t);
             editLinePane.getChildren().add(p);
+            editLinePane.getChildren().add(circular);
+            editLinePane.getChildren().add(circularText);
             editLinePane.getChildren().add(ok);
             editLinePane.getChildren().add(cancel);
 
@@ -628,6 +645,23 @@ public class mapEditController {
                 startLine.startXProperty().bind(editMetroLine.getTopLabel().xProperty().add(name.length()*10 + 30));
                 dataManager.setSelectedShape(editMetroLine.getLines().get(0));
                 editMetroLine.getTopLabel().setEffect(null);
+                
+                if(circular.isSelected() == true && editMetroLine.isCircular() == false){
+                    
+                    Line endLine = editMetroLine.getLines().get(editMetroLine.getLines().size()-1);
+                    endLine.endXProperty().bind(editMetroLine.getTopLabel().xProperty().add(editMetroLine.getName().length()*10 + 30));
+                    endLine.endYProperty().bind(editMetroLine.getTopLabel().yProperty().subtract(5));
+                    dataManager.getShapes().remove(editMetroLine.getBottomLabel());
+                    editMetroLine.setIsCircular(true);
+                }
+                
+                else if(circular.isSelected() == false && editMetroLine.isCircular() == true){
+                    Line endLine = editMetroLine.getLines().get(editMetroLine.getLines().size()-1);
+                    dataManager.getShapes().add(editMetroLine.getBottomLabel());
+                    endLine.endXProperty().bind(editMetroLine.getBottomLabel().xProperty().subtract( 20));
+                    endLine.endYProperty().bind(editMetroLine.getBottomLabel().yProperty().subtract(5));
+                    editMetroLine.setIsCircular(false);
+                }
             });
             
             cancel.setOnAction(e ->{
