@@ -450,6 +450,15 @@ public class mmmFiles implements AppFileComponent{
                 workspace.setStationBox(stationsList.get(j).getName());
                 workspace.getRouteBox1().getItems().add(stationsList.get(j).getName());
                 workspace.getRouteBox2().getItems().add(stationsList.get(j).getName());
+                
+                for(int x = 0; x < stationsList.get(j).getMetroLines().size(); x++){
+                    MetroLine testLine = stationsList.get(j).getMetroLines().get(x);
+                    
+                    for(int y = 0; y < stationsList.get(j).getMetroLines().size(); y++){
+                        if(stationsList.get(j).getMetroLines().get(y) != testLine)
+                            stationsList.get(j).getMetroLines().get(y).addTransfer(testLine);
+                    }
+                }
             }
         
         JsonArray stationsOffLine = json.getJsonArray(JSON_STATIONS_OFF_LINE);

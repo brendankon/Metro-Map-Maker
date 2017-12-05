@@ -58,6 +58,7 @@ import jtps.jTPS;
 import jtps.jTPS_Transaction;
 import mmm.data.DraggableRectangle;
 import mmm.data.GridLine;
+import mmm.data.Path;
 import mmm.data.mmmState;
 import properties_manager.PropertiesManager;
 
@@ -405,6 +406,12 @@ public class mapEditController {
                     dataManager.addShape(station);
                 }
             }
+            
+            for(int i = 0; i < station.getMetroLines().size(); i++){
+                if(station.getMetroLines().get(i) != metroLine){
+                    station.getMetroLines().get(i).addTransfer(metroLine);
+                }
+            }
         }
 
     }
@@ -451,6 +458,10 @@ public class mapEditController {
         station.getMetroLines().remove(metroLine);
         station.setCenterX(station.getCenterX() - 30);
         station.setCenterY(station.getCenterY() - 30);
+        
+        for(int i = 0; i < station.getMetroLines().size(); i++){
+            metroLine.removeTransfer(station.getMetroLines().get(i));
+        }
     }
     
     public void processRemoveLineRequest(){
@@ -1021,10 +1032,146 @@ public class mapEditController {
                 dataManager.setImageString(selectedFile.toURI().toString());
                 ImageView v = new ImageView(image);
                 Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-                v.setX(workspace.getWorkspace().getWidth()/2 - 300 - image.getWidth()/2);
+                v.setX(workspace.getWorkspace().getWidth()/2 - 250 - image.getWidth()/2);
                 v.setY(workspace.getWorkspace().getHeight()/2 - image.getHeight()/2);
                 dataManager.getShapes().add(0, v);
             } 
+    }
+    
+    public void processFindRouteRequest(){
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        if(!((String)workspace.getRouteBox1().getValue()).isEmpty() && !((String)workspace.getRouteBox2().getValue()).isEmpty()){
+            Station station1 = null; 
+            Station station2 = null;
+            
+            for(int i = 0; i < dataManager.getShapes().size(); i++){
+                if(dataManager.getShapes().get(i) instanceof Station && !((Station)dataManager.getShapes().get(i)).isEndLabel() 
+                        && ((Station)dataManager.getShapes().get(i)).getName().equals(workspace.getRouteBox1().getValue())){
+                    station1 = (Station)dataManager.getShapes().get(i);
+                }
+                
+                if(dataManager.getShapes().get(i) instanceof Station && !((Station)dataManager.getShapes().get(i)).isEndLabel() 
+                        && ((Station)dataManager.getShapes().get(i)).getName().equals(workspace.getRouteBox2().getValue())){
+                    station2 = (Station)dataManager.getShapes().get(i);
+                }
+            }
+            
+            Path path = findMinimumTransferPath(station1, station2);
+            showPathDescription(path, station1, station2);
+        }
+    }
+    
+    public Path findMinimumTransferPath(Station startStation, Station endStation){
+        
+        ArrayList<MetroLine> linesToTest = new ArrayList<>();
+        ArrayList<MetroLine> visitedLines = new ArrayList<>();
+        
+        int numTransfers = 0;
+        ArrayList<Path> testPaths = new ArrayList<>();
+        
+        for(int i = 0; i < startStation.getMetroLines().size(); i++){
+            Path path = new Path(startStation, endStation);
+            testPaths.add(path);
+            path.addBoarding(startStation.getMetroLines().get(i), startStation);
+            
+        }
+        
+        boolean found = false;
+        boolean morePathsPossible = true;
+        ArrayList<Path> completedPaths = new ArrayList<>();
+        
+        while(!found && morePathsPossible){
+            ArrayList<Path> updatedPaths = new ArrayList<>();
+            for(int i = 0; i < testPaths.size(); i++){
+                Path testPath = testPaths.get(i);
+                
+                if(testPath.hasLineWithStation(endStation)){
+                    completedPaths.add(testPath);
+                    found = true;
+                    morePathsPossible = false;
+                }
+                
+                else if(morePathsPossible){
+                    MetroLine lastLine = testPath.tripLines.get(testPath.tripLines.size()-1);
+                    for(int j = 0; j < lastLine.getTransfers().size(); j++){
+                        MetroLine testLine = lastLine.getTransfers().get(j);
+                        if(!testPath.hasLine(testLine)){
+                            Path newPath = testPath.clonePath();
+                            Station intersectingStation = lastLine.findIntersectingStation(testLine);
+                            newPath.addBoarding(testLine, intersectingStation);
+                            updatedPaths.add(newPath);
+                        }
+                    }
+                }
+            }
+            
+            if(updatedPaths.size() > 0){
+                testPaths = updatedPaths;
+                numTransfers++;
+            }
+            
+            else{
+                morePathsPossible = false;
+            }
+        }
+        
+        if(found){
+            Path shortestPath = completedPaths.get(0);
+            int shortestTime = shortestPath.calculateTimeOfTrip();
+            
+            for(int i = 1; i < completedPaths.size(); i++){
+                Path testPath = completedPaths.get(i);
+                int timeOfTrip = testPath.calculateTimeOfTrip();
+                
+                if(timeOfTrip < shortestTime){
+                    shortestPath = testPath;
+                    shortestTime = timeOfTrip;
+                }
+            }
+            return shortestPath;
+        }
+        
+        else{
+            return null;
+        }
+        
+    }
+    
+    public void showPathDescription(Path path, Station startStation, Station endStation){
+        
+        try{
+            Stage pathStage = new Stage();
+            Pane pathPane = new Pane();
+            
+            Text text = new Text("PATH FOUND\n\n");
+            MetroLine line = path.tripLines.get(0);
+            int i = 0;
+            for(;i < path.tripLines.size(); i++){
+                line = path.tripLines.get(i);
+                text.setText(text.getText() + (i+1) + ". Board " + line.getName() + " at " + path.boardingStations.get(i).getName() + "\n");
+            }
+            
+            text.setText(text.getText() + (i+1) + ". Disembark " + line.getName() + " at " + endStation.getName());
+            text.setFont(Font.font("System", FontWeight.BOLD, 16));
+            text.setLayoutX(50);
+            text.setLayoutY(50);
+            pathPane.getChildren().add(text);
+            Scene scene = new Scene (pathPane, 400, 350);
+            pathStage.setScene(scene);
+            pathStage.setTitle("Path Description");
+            pathStage.show();
+        }
+        catch(NullPointerException e){
+            
+            Alert alert = new Alert(AlertType.ERROR, "Selected route is not obtainable",ButtonType.CLOSE);
+            alert.setHeaderText("Error: Invalid Path");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if(result.get() == ButtonType.CLOSE){
+                return;
+            }
+        }
+ 
     }
     
     public void processUndoRequest(){

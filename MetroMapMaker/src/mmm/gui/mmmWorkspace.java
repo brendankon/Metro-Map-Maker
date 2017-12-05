@@ -636,6 +636,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         setImgBackgroundButton.setOnAction(e ->{
            controller.processImageBackgroundRequest(); 
         });
+        findRouteButton.setOnAction(e ->{
+            controller.processFindRouteRequest();
+        });
         fontStyleBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
             jTPS j = data.getJTPS();
             jTPS_Transaction transaction = new ChangeText_Transaction(null,null, t1,t, false, false, (DraggableText)data.getSelectedShape(), app, "");
@@ -1046,6 +1049,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             removeLineButton.setDisable(!isLine);
             addStationToLineButton.setDisable(!isLine);
             removeStationFromLineButton.setDisable(!isLine);
+            listStationsButton.setDisable(!isLine);
             lineThicknessSlider.setDisable(!isLine);
             
             removeStationButton.setDisable(!isStation);

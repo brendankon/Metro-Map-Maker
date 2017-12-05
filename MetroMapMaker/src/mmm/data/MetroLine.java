@@ -15,6 +15,7 @@ public class MetroLine {
     ArrayList<Station> stations;
     DraggableText topLabel;
     DraggableText bottomLabel;
+    ArrayList<MetroLine> transfers;
     boolean isCircular;
     
     public MetroLine(String name){
@@ -25,6 +26,7 @@ public class MetroLine {
         Line startLine = new Line();
         lines.add(startLine);
         isCircular = false;
+        transfers = new ArrayList<>();
         
     }
     
@@ -74,6 +76,38 @@ public class MetroLine {
     
     public boolean isCircular(){
         return isCircular;
+    }
+    
+    public void addTransfer(MetroLine line){
+        if(!transfers.contains(line))
+            this.transfers.add(line);
+    }
+    
+    public void removeTransfer(MetroLine line){
+        int lineCount = 0;
+        for(int i = 0; i < stations.size(); i++){
+            if(stations.get(i).getMetroLines().contains(line))
+                lineCount++;
+        }
+        
+        if(lineCount == 0)
+            transfers.remove(line);
+    }
+    
+    public ArrayList<MetroLine> getTransfers(){
+        return transfers;
+    }
+    
+    public Station findIntersectingStation(MetroLine line){
+        
+        for(int i = 0; i < stations.size(); i++){
+            Station station1 = stations.get(i);
+            
+            if(line.getStations().contains(station1))
+                return station1;
+        }
+        
+        return null;
     }
 
        
