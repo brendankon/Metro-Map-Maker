@@ -38,8 +38,8 @@ public class MetroLine {
         return lines;
     }
     
-    public void addStation(Station s){
-        stations.add(s);
+    public void addStation(int index, Station s){
+        stations.add(index, s);
     }
     
     public ArrayList<Station> getStations(){

@@ -22,6 +22,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Insets;
 import javafx.scene.SnapshotParameters;
 import mmm.data.mmmData;
 import javafx.scene.image.Image;
@@ -35,6 +36,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Transform;
 import javax.imageio.ImageIO;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -588,13 +590,13 @@ public class mmmFiles implements AppFileComponent{
             for(int l = 0; l < stationsList.size(); l++){
                 if(s.getName().equals(stationsList.get(l).getName())){
                     stationsList.get(l).addMetroLine(metroLine);
-                    metroLine.addStation(stationsList.get(l));
+                    metroLine.getStations().add(stationsList.get(l));
                     isInList = true;
                 }
             }
             if(!isInList){
                 s.addMetroLine(metroLine);
-                metroLine.addStation(s);
+                metroLine.getStations().add(s);
                 stationsList.add(s);
             }
             else
@@ -769,9 +771,11 @@ public class mmmFiles implements AppFileComponent{
             }
             
             Pane canvas = workspace.getCenterPane();
-            WritableImage image = canvas.snapshot(new SnapshotParameters(), null);
+            app.getGUI().getFileToolbar().setPadding(new Insets(0));
+            WritableImage image = canvas.snapshot(new SnapshotParameters(), new WritableImage((int)canvas.getWidth(),(int)canvas.getHeight()));
+            app.getGUI().getFileToolbar().setPadding(new Insets(15));
             File file = new File(filePath + "/" + gui.getCurrentFile().getName() + ".png");
-            workspace.getWorkspace().toBack();
+            workspace.getCenterPane().toBack();
             try {
                 ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
             }

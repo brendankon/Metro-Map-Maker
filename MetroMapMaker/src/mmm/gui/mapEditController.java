@@ -264,7 +264,7 @@ public class mapEditController {
                 bottomLine.endYProperty().bind(bottomLabel.yProperty().subtract(5));
                 
                 station.getMetroLines().add(metroLine);
-                metroLine.addStation(station);
+                metroLine.addStation(0, station);
                 metroLine.addLine(topLine);
                 metroLine.addLine(bottomLine);
                 dataManager.addShape(topLine);
@@ -410,6 +410,7 @@ public class mapEditController {
             for(int i = 0; i < station.getMetroLines().size(); i++){
                 if(station.getMetroLines().get(i) != metroLine){
                     station.getMetroLines().get(i).addTransfer(metroLine);
+                    metroLine.addTransfer(station.getMetroLines().get(i));
                 }
             }
         }
@@ -461,6 +462,7 @@ public class mapEditController {
         
         for(int i = 0; i < station.getMetroLines().size(); i++){
             metroLine.removeTransfer(station.getMetroLines().get(i));
+            station.getMetroLines().get(i).removeTransfer(metroLine);
         }
     }
     
