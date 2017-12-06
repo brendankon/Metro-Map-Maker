@@ -7,10 +7,12 @@ package mmm.gui;
 
 import djf.AppTemplate;
 import djf.controller.AppFileController;
+import static java.lang.Math.abs;
 import java.util.ArrayList;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -43,6 +45,8 @@ public class CanvasController {
     int startY;
     int startMouseX;
     int startMouseY;
+    int centerPaneX = 40;
+    int centerPaneY = 40;
 
     public CanvasController(AppTemplate initApp) {
         app = initApp;
@@ -226,8 +230,10 @@ public class CanvasController {
         
         public void processCanvasMouseDragged(int x, int y) {
             mmmData dataManager = (mmmData) app.getDataComponent();
+            mmmWorkspace workspace = (mmmWorkspace) app.getWorkspaceComponent();
                 if (dataManager.isInState(DRAGGING_SHAPE)) {
                     if(dataManager.getSelectedShape() instanceof Draggable){
+                        if(!(centerPaneX < 60) && !(centerPaneY < 50)){
                         Draggable selectedDraggableShape = (Draggable) dataManager.getSelectedShape();
                         selectedDraggableShape.drag(x, y);
                         if(!startedDragging){
@@ -255,7 +261,13 @@ public class CanvasController {
                         }
                         app.getGUI().updateToolbarControls(false);
                     }
+                }
             }
+    }
+        
+    public void centerPaneMouseDrag(int x, int y){
+            centerPaneX = x;
+            centerPaneY = y;
     }
         
     public void processCanvasMouseRelease(int x, int y) {

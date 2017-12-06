@@ -67,6 +67,8 @@ public class mmmData implements AppDataComponent{
     Color currentOutlineColor;
     double currentBorderWidth;
     String imageString;
+    double mapScale = 1;
+    double zoomScale = 1;
 
     // CURRENT STATE OF THE APP
     mmmState state;
@@ -114,6 +116,22 @@ public class mmmData implements AppDataComponent{
     
     public ObservableList<Node> getShapes() {
 	return shapes;
+    }
+    
+    public void setMapScale(double scale){
+        mapScale = scale;
+    }
+    
+    public double getMapScale(){
+        return mapScale;
+    }
+    
+    public void setZoomScale(double scale){
+        zoomScale = scale;
+    }
+    
+    public double getZoomScale(){
+        return zoomScale;
     }
     
     public void addShape(Shape shape){

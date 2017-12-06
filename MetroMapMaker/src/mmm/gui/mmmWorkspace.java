@@ -75,6 +75,8 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -458,16 +460,13 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         editToolbar.getChildren().add(row6VBox);
 
         canvas = new Pane();
-        
-        canvas.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
-        canvas.prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
-        canvas.setBorder(editToolbar.getBorder());
         centerPane = new Pane();
         centerPane.getChildren().add(canvas);
-        centerPane.setBackground(new Background(new BackgroundFill((Paint)Color.WHITE, null, null)));
-        centerPane.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
         centerPane.prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
-        
+        centerPane.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
+        canvas.prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
+        canvas.prefHeightProperty().bind(app.getGUI().getPrimaryStage().heightProperty());
+        app.getGUI().getTopToolbarPane().prefWidthProperty().bind(app.getGUI().getPrimaryStage().widthProperty());
         workspace = new BorderPane();
         workspace.setBackground(new Background(new BackgroundFill((Paint)Color.WHITE, null, null)));
         ((BorderPane)workspace).setCenter(centerPane);
@@ -547,11 +546,13 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         
         aboutButton.setOnAction(e ->{
             handleAboutRequest();
+            canvas.requestFocus();
         });
         
         exportButton.setOnAction(e ->{
             try {
                 handleExportRequest();
+                canvas.requestFocus();
             } catch (IOException ex) {
                 Logger.getLogger(mmmWorkspace.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -559,85 +560,119 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         
         addLineButton.setOnAction(e ->{
             controller.processNewLineRequest();
+            canvas.requestFocus();
         });
         
         addStationButton.setOnAction(e ->{
             controller.processNewStationRequest();
+            canvas.requestFocus();
         });
         
         addStationToLineButton.setOnAction(e ->{
             controller.processAddStationToLineRequest();
+            canvas.requestFocus();
         });
         
         removeStationFromLineButton.setOnAction(e ->{
             controller.processRemoveStationFromLineRequest();
+            canvas.requestFocus();
         });
         
         removeLineButton.setOnAction(e ->{
             controller.processRemoveLineRequest();
+            canvas.requestFocus();
         });
         
         removeStationButton.setOnAction(e ->{
            controller.processRemoveStationRequest(); 
+           canvas.requestFocus();
         });
         
         editLineButton.setOnAction(e ->{
            controller.processEditLineRequest();
+           canvas.requestFocus();
         });
         
         setBackgroundColorPicker.setOnAction(e ->{
            controller.processBackgroundColorRequest(); 
+           canvas.requestFocus();
         });
         
         addImageButton.setOnAction(e ->{
             controller.processNewImage();
+            canvas.requestFocus();
         });
         
         listStationsButton.setOnAction(e ->{
             controller.processListStationsRequest();
+            canvas.requestFocus();
         });
         
         moveLabelButton.setOnAction(e ->{
            controller.processMoveStationLabelRequest();
+           canvas.requestFocus();
         });
         
         rotateButton.setOnAction(e ->{
            controller.processRotateRequest();
+           canvas.requestFocus();
         });
         
         lineThicknessSlider.valueProperty().addListener(e-> {           
 	    controller.processSelectOutlineThickness(lineThicknessSlider);
+            canvas.requestFocus();
 	});
         lineThicknessSlider.setOnMouseDragged(e->{
             processThicknessSliderPress(lineThicknessSlider);
+            canvas.requestFocus();
         });
         lineThicknessSlider.setOnMouseReleased(e->{
             processThicknessSliderRelease(lineThicknessSlider);
+            canvas.requestFocus();
         });
         
         stationRadiusSlider.valueProperty().addListener(e-> {           
 	    controller.processSelectOutlineThickness(stationRadiusSlider);
+            canvas.requestFocus();
 	});
         stationRadiusSlider.setOnMouseDragged(e->{
             processThicknessSliderPress(stationRadiusSlider);
+            canvas.requestFocus();
         });
         stationRadiusSlider.setOnMouseReleased(e->{
             processThicknessSliderRelease(stationRadiusSlider);
+            canvas.requestFocus();
         });
         addLabelButton.setOnAction(e ->{
            controller.processNewText(); 
+           canvas.requestFocus();
         });
         stationColorPicker.setOnAction(e ->{
             controller.processStationColorRequest();
+            canvas.requestFocus();
         });
         toggleGrid.setOnAction(e ->{
             controller.processGridRequest();
+            canvas.requestFocus();
         });
         setImgBackgroundButton.setOnAction(e ->{
            controller.processImageBackgroundRequest(); 
+           canvas.requestFocus();
         });
         findRouteButton.setOnAction(e ->{
             controller.processFindRouteRequest();
+            canvas.requestFocus();
+        });
+        increaseMapSize.setOnAction(e ->{
+            controller.processIncreaseMapSize();
+            canvas.requestFocus();
+        });
+        decreaseMapSize.setOnAction(e ->{
+           controller.processDecreaseMapSize();
+           canvas.requestFocus();
+        });
+        canvas.setOnKeyPressed(e ->{
+            controller.processPanRequest(e);
         });
         fontStyleBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
             jTPS j = data.getJTPS();
@@ -648,6 +683,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                 redoButton.setDisable(true);
             }
             undoButton.setDisable(false);
+            canvas.requestFocus();
         });
         fontSizeBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
             jTPS j = data.getJTPS();
@@ -658,6 +694,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                 redoButton.setDisable(true);
             }
             undoButton.setDisable(false);
+            canvas.requestFocus();
         });
         boldButton.setOnAction(e->{
             jTPS j = data.getJTPS();
@@ -668,6 +705,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                 redoButton.setDisable(true);
             }
             undoButton.setDisable(false);
+            canvas.requestFocus();
             //data.processBoldRequest();
         });
         italicsButton.setOnAction(e->{
@@ -679,9 +717,11 @@ public class mmmWorkspace extends AppWorkspaceComponent{
                 redoButton.setDisable(true);
             }
             undoButton.setDisable(false);
+            canvas.requestFocus();
         });
         removeElementButton.setOnAction(e ->{
             controller.processRemoveSelectedShape();
+            canvas.requestFocus();
         });
         zoomInButton.setOnAction(e ->{
            controller.processZoomInRequest(); 
@@ -691,6 +731,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         });
         snapButton.setOnAction(e ->{
             controller.processSnapToGridRequest();
+            canvas.requestFocus();
         });
         
         lineBox.valueProperty().addListener(new ChangeListener<String>(){
@@ -864,6 +905,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
 	canvas.setOnMouseDragged(e->{
 	    canvasController.processCanvasMouseDragged((int)e.getX(), (int)e.getY());
 	});
+        centerPane.setOnMouseDragged(e ->{
+           canvasController.centerPaneMouseDrag((int)e.getX(), (int)e.getY());
+        });
     }
     
     public void processThicknessSliderPress(Slider selectedSlider){

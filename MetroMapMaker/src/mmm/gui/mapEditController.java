@@ -40,9 +40,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import static javafx.scene.input.KeyCode.W;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -72,7 +79,6 @@ public class mapEditController {
     mmmData dataManager;
     ArrayList<GridLine> gridLinesV;
     ArrayList<GridLine> gridLinesH;
-    double mapScale = 1;
     
     public mapEditController(AppTemplate initApp) {
 	app = initApp;
@@ -537,28 +543,65 @@ public class mapEditController {
     
     public void processZoomInRequest(){
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-        FlowPane topToolbarPane = app.getGUI().getTopToolbarPane();
-        topToolbarPane.setMinWidth(app.getGUI().getPrimaryStage().getWidth());
-        topToolbarPane.setPrefWidth(app.getGUI().getPrimaryStage().getWidth());
-        topToolbarPane.setMaxWidth(USE_COMPUTED_SIZE);
         workspace.getWorkspace().toBack();
         Pane canvas = workspace.getCanvas();
         canvas.setScaleX(canvas.getScaleX() + .1);
         canvas.setScaleY(canvas.getScaleY() + .1);
-        mapScale = canvas.getScaleX();
+        dataManager.setZoomScale(canvas.getScaleX());
+        canvas.requestFocus();
     }
     
     public void processZoomOutRequest(){
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-        FlowPane topToolbarPane = app.getGUI().getTopToolbarPane();
-        topToolbarPane.setMinWidth(app.getGUI().getPrimaryStage().getWidth());
-        topToolbarPane.setPrefWidth(app.getGUI().getPrimaryStage().getWidth());
-        topToolbarPane.setMaxWidth(USE_COMPUTED_SIZE);
         workspace.getWorkspace().toBack();
+        Pane ws = workspace.getWorkspace();
+        Pane center = workspace.getCenterPane();
         Pane canvas = workspace.getCanvas();
+        canvas.setTranslateX(0);
+        canvas.setTranslateY(0);
         canvas.setScaleX(canvas.getScaleX() - .1);
         canvas.setScaleY(canvas.getScaleY() - .1);
-        mapScale = canvas.getScaleX();
+        dataManager.setZoomScale(canvas.getScaleX());
+        canvas.requestFocus();
+    }
+    
+    public void processDecreaseMapSize(){
+        if(dataManager.getMapScale() > .3){
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            Pane centerPane = workspace.getCenterPane();
+            centerPane.setScaleX(centerPane.getScaleX() - .1);
+            centerPane.setScaleY(centerPane.getScaleY() - .1);
+            dataManager.setMapScale(centerPane.getScaleX());
+        }
+    }
+    
+    public void processIncreaseMapSize(){
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+        Pane centerPane = workspace.getCenterPane();
+        centerPane.setScaleX(centerPane.getScaleX() + .1);
+        centerPane.setScaleY(centerPane.getScaleY() + .1);
+        dataManager.setMapScale(centerPane.getScaleX());
+    }
+    
+    public void processPanRequest(KeyEvent e){
+        if(dataManager.getZoomScale() > 1){
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            Pane canvas = workspace.getCanvas();
+            if(e.getCode() == KeyCode.W){
+                canvas.setTranslateY(canvas.getTranslateY() + 100);
+            }
+            if(e.getCode() == KeyCode.A){
+                canvas.setTranslateX(canvas.getTranslateX() + 100);
+            }
+            
+            if(e.getCode() == KeyCode.S){
+                canvas.setTranslateY(canvas.getTranslateY() - 100);
+            }
+            
+            if(e.getCode() == KeyCode.D){
+                canvas.setTranslateX(canvas.getTranslateX() - 100);
+            }
+        }
     }
     
     public void processEditLineRequest(){

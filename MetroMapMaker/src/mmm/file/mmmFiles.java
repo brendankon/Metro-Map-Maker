@@ -104,6 +104,7 @@ public class mmmFiles implements AppFileComponent{
     static final String JSON_IS_ROTATED = "is_rotated";
     static final String JSON_BG_IMAGE = "bg_image";
     static final String JSON_IS_CIRCULAR = "is_circular";
+    static final String JSON_MAP_SCALE = "map_scale";
     
     static final String DEFAULT_DOCTYPE_DECLARATION = "<!doctype html>\n";
     static final String DEFAULT_ATTRIBUTE_VALUE = "";
@@ -289,6 +290,7 @@ public class mmmFiles implements AppFileComponent{
         
         JsonObject dataManagerJSO = Json.createObjectBuilder()
                 .add(JSON_BG_COLOR, bgColorJson)
+                .add(JSON_MAP_SCALE, dataManager.getMapScale())
                 .add(JSON_BG_IMAGE, bgImageJson)
                 .add(JSON_METRO_LINES, metroLinesBuilder)
                 .add(JSON_SHAPES, shapesArray)
@@ -482,6 +484,13 @@ public class mmmFiles implements AppFileComponent{
 	    Shape shape = loadShape(jsonShape, dataManager);
 	    dataManager.addShape(shape);
 	}
+        
+        workspace.getCenterPane().setScaleX(getDataAsDouble(json, JSON_MAP_SCALE));
+        workspace.getCenterPane().setScaleY(getDataAsDouble(json, JSON_MAP_SCALE));
+        dataManager.setMapScale(getDataAsDouble(json, JSON_MAP_SCALE));
+        workspace.getCanvas().setScaleX(1);
+        workspace.getCanvas().setScaleY(1);
+        dataManager.setZoomScale(1);
     }
     
     private Shape loadShape(JsonObject jsonShape, mmmData data) {
@@ -734,6 +743,9 @@ public class mmmFiles implements AppFileComponent{
         mmmWorkspace workspace = dataManager.getWorkspace();
         mapEditController controller = workspace.getController();
         if(gui.getCurrentFile() != null){
+            workspace.getCanvas().setScaleX(1);
+            workspace.getCanvas().setScaleY(1);
+            dataManager.setZoomScale(1);
             
             if(dataManager.getShapes().get(1) instanceof GridLine){
                 controller.processGridRequest();
@@ -770,12 +782,12 @@ public class mmmFiles implements AppFileComponent{
                     }
             }
             
-            Pane canvas = workspace.getCenterPane();
-            app.getGUI().getFileToolbar().setPadding(new Insets(0));
-            WritableImage image = canvas.snapshot(new SnapshotParameters(), new WritableImage((int)canvas.getWidth(),(int)canvas.getHeight()));
-            app.getGUI().getFileToolbar().setPadding(new Insets(15));
+            Pane centerPane = workspace.getCenterPane();
+            Pane canvas = workspace.getCanvas();
+            WritableImage im = new WritableImage((int)centerPane.getBoundsInParent().getWidth(), (int)centerPane.getBoundsInParent().getHeight());
+            WritableImage image = centerPane.snapshot(new SnapshotParameters(), im);
             File file = new File(filePath + "/" + gui.getCurrentFile().getName() + ".png");
-            workspace.getCenterPane().toBack();
+
             try {
                 ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
             }
@@ -842,7 +854,10 @@ public class mmmFiles implements AppFileComponent{
             String prettyPrinted = sw.toString();
             PrintWriter pw = new PrintWriter(filePath + "/" + gui.getCurrentFile().getName());
             pw.write(prettyPrinted);
-            pw.close();  
+            pw.close(); 
+            
+            //saveData(app.getDataComponent(), app.getGUI().getCurrentFile().getPath());
+            //loadData(app.getDataComponent(), app.getGUI().getCurrentFile().getPath());
         }
     }
 
