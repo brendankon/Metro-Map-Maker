@@ -21,8 +21,12 @@ import djf.ui.AppGUI;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import mmm.data.mmmData;
 import javafx.scene.image.Image;
@@ -37,6 +41,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Transform;
+import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -784,18 +789,18 @@ public class mmmFiles implements AppFileComponent{
             
             Pane centerPane = workspace.getCenterPane();
             Pane canvas = workspace.getCanvas();
-            WritableImage im = new WritableImage((int)centerPane.getBoundsInParent().getWidth(), (int)centerPane.getBoundsInParent().getHeight());
-            WritableImage image = centerPane.snapshot(new SnapshotParameters(), im);
             File file = new File(filePath + "/" + gui.getCurrentFile().getName() + ".png");
-
             try {
+                workspace.getWorkspace().toFront();
+                WritableImage image = centerPane.snapshot(new SnapshotParameters(), null);
                 ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+                workspace.getWorkspace().toBack();
+
             }
             catch(IOException ioe) {
                 ioe.printStackTrace();
             }
-            
-            
+   
             JsonArrayBuilder stationsArray = Json.createArrayBuilder();
             JsonArrayBuilder linesArray = Json.createArrayBuilder();
             

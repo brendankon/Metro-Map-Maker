@@ -543,7 +543,6 @@ public class mapEditController {
     
     public void processZoomInRequest(){
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-        workspace.getWorkspace().toBack();
         Pane canvas = workspace.getCanvas();
         canvas.setScaleX(canvas.getScaleX() + .1);
         canvas.setScaleY(canvas.getScaleY() + .1);
@@ -553,7 +552,6 @@ public class mapEditController {
     
     public void processZoomOutRequest(){
         mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-        workspace.getWorkspace().toBack();
         Pane ws = workspace.getWorkspace();
         Pane center = workspace.getCenterPane();
         Pane canvas = workspace.getCanvas();
@@ -566,7 +564,7 @@ public class mapEditController {
     }
     
     public void processDecreaseMapSize(){
-        if(dataManager.getMapScale() > .3){
+        if(dataManager.getMapScale() > .4){
             mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
             Pane centerPane = workspace.getCenterPane();
             centerPane.setScaleX(centerPane.getScaleX() - .1);

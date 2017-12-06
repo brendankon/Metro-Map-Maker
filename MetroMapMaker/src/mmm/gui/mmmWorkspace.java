@@ -84,6 +84,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -211,7 +212,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
     CanvasController canvasController;
     
     mapEditController controller;
-    
+    boolean isBack = false;
     
     
     
@@ -724,6 +725,11 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             canvas.requestFocus();
         });
         zoomInButton.setOnAction(e ->{
+           if(!isBack){
+               centerPane.snapshot(new SnapshotParameters(), null);
+               workspace.toBack();
+               isBack = true;
+           }
            controller.processZoomInRequest(); 
         });
         zoomOutButton.setOnAction(e ->{

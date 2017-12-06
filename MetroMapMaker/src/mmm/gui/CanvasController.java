@@ -56,7 +56,6 @@ public class CanvasController {
             mapEditController controller = new mapEditController(app);
             mmmData dataManager = (mmmData) app.getDataComponent();
             mmmWorkspace workspace = (mmmWorkspace) app.getWorkspaceComponent();
-            workspace.getWorkspace().toBack();
             if (dataManager.isInState(SELECTING_SHAPE)) {
                 // SELECT THE TOP SHAPE
                 Shape shape = dataManager.selectTopShape(x, y);
