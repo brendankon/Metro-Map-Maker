@@ -5,6 +5,7 @@ import mmm.data.mmmData;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import jtps.jTPS_Transaction;
+import mmm.data.DraggableText;
 
 /**
  *
@@ -18,6 +19,7 @@ public class AddColor_Transaction implements jTPS_Transaction{
     Color oldColor;
     mmmData data;
     Shape shape;
+    Shape lineShape;
     AppTemplate app;
     
     public AddColor_Transaction(Color color, boolean isBackground, boolean isFill, mmmData data, Shape shape, AppTemplate initApp){
@@ -28,6 +30,9 @@ public class AddColor_Transaction implements jTPS_Transaction{
         this.data = data;
         this.shape = shape;
         this.app = initApp;
+        this.lineShape = (Shape)new DraggableText("", 14);
+        if(shape instanceof DraggableText && ((DraggableText)shape).getMetroLine() != null)
+            this.lineShape = ((DraggableText)shape).getMetroLine().getBottomLabel();
     }
     
     @Override
@@ -41,6 +46,7 @@ public class AddColor_Transaction implements jTPS_Transaction{
         else if(isFill){
             oldColor = (Color)shape.getFill();
             shape.setFill(color);
+            lineShape.setFill(color);
         }
     }
     
@@ -56,6 +62,7 @@ public class AddColor_Transaction implements jTPS_Transaction{
         else if(isFill){
             mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
             shape.setFill(oldColor);
+            lineShape.setFill(oldColor);
             workspace.getStationColorPicker().setValue(oldColor);
         }
     }

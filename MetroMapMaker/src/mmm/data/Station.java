@@ -15,7 +15,7 @@ public class Station extends Ellipse implements Draggable{
     double startCenterX;
     double startCenterY;
     ArrayList<MetroLine> metroLines;
-    Text label;
+    DraggableText label;
     boolean isEndLabel;
     int isRotated;
     int positionNumber;
@@ -108,11 +108,11 @@ public class Station extends Ellipse implements Draggable{
         return name;
     }
     
-    public void setLabel(Text text){
+    public void setLabel(DraggableText text){
         label = text;
     }
     
-    public Text getLabel(){
+    public DraggableText getLabel(){
         return label;
     }
     

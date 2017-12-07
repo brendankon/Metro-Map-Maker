@@ -110,6 +110,9 @@ public class mmmFiles implements AppFileComponent{
     static final String JSON_BG_IMAGE = "bg_image";
     static final String JSON_IS_CIRCULAR = "is_circular";
     static final String JSON_MAP_SCALE = "map_scale";
+    static final String JSON_LABEL_1 = "label_1";
+    static final String JSON_LABEL_2 = "label_2";
+    
     
     static final String DEFAULT_DOCTYPE_DECLARATION = "<!doctype html>\n";
     static final String DEFAULT_ATTRIBUTE_VALUE = "";
@@ -189,6 +192,7 @@ public class mmmFiles implements AppFileComponent{
                 double centerY = s.getCenterY();
                 double radiusX = s.getRadiusX();
                 double radiusY = s.getRadiusY();
+                JsonObject labelObject = makeJsonTextObject(s.getLabel());
                 String stationsName = s.getName();
                 JsonObject stationJson = Json.createObjectBuilder()
                         .add(JSON_NAME, stationsName)
@@ -198,8 +202,11 @@ public class mmmFiles implements AppFileComponent{
                         .add(JSON_Y, centerY)
                         .add(JSON_WIDTH, radiusX)
                         .add(JSON_POSITION_NUMBER, (double)s.getPositionNumber())
+                        .add(JSON_LABEL_1, labelObject)
                         .add(JSON_IS_ROTATED, (double)s.getIsRotated())
+                        
                         .add(JSON_HEIGHT, radiusY).build();
+                        
                 stationsOnLineArray.add(stationJson);           
             }
             double topLabelX = i.getTopLabel().getX();
@@ -207,6 +214,8 @@ public class mmmFiles implements AppFileComponent{
             double bottomLabelX = i.getBottomLabel().getX();
             double bottomLabelY = i.getBottomLabel().getY();
             double isCircular = 0;
+            JsonObject lineLabelObject1 = makeJsonTextObject(i.getTopLabel());
+            JsonObject lineLabelObject2 = makeJsonTextObject(i.getBottomLabel());
             if(i.isCircular())
                 isCircular = 1;
             JsonObject metroLineJson = Json.createObjectBuilder()
@@ -217,6 +226,8 @@ public class mmmFiles implements AppFileComponent{
                     .add(JSON_BOTTOM_LABEL_X, bottomLabelX)
                     .add(JSON_BOTTOM_LABEL_Y, bottomLabelY)
                     .add(JSON_LINES_ARRAY,linesArray)
+                    .add(JSON_LABEL_1, lineLabelObject1)
+                    .add(JSON_LABEL_2, lineLabelObject2)
                     .add(JSON_STATIONS_ARRAY,stationsOnLineArray).build();
             metroLinesBuilder.add(metroLineJson);
         }
@@ -239,6 +250,7 @@ public class mmmFiles implements AppFileComponent{
                 double centerY = s.getCenterY();
                 double radiusX = s.getRadiusX();
                 double radiusY = s.getRadiusY();
+                JsonObject labelObject = makeJsonTextObject(s.getLabel());
                 String stationsName = s.getName();
                 
                 JsonObject stationJson = Json.createObjectBuilder()
@@ -250,6 +262,7 @@ public class mmmFiles implements AppFileComponent{
                     .add(JSON_WIDTH, radiusX)
                     .add(JSON_POSITION_NUMBER, (double)s.getPositionNumber())
                     .add(JSON_IS_ROTATED, (double)s.getIsRotated())
+                    .add(JSON_LABEL_1, labelObject)
                     .add(JSON_HEIGHT, radiusY).build();  
                 stationsOffLineArray.add(stationJson);
             }
@@ -276,7 +289,7 @@ public class mmmFiles implements AppFileComponent{
                 shapesArray.add(shapeJson);
             }
             
-            else if((Shape)node instanceof DraggableText && ((DraggableText)node).getMetroLine() == null){
+            else if((Shape)node instanceof DraggableText && ((DraggableText)node).getMetroLine() == null && !((DraggableText)node).isStationText()){
                 DraggableText text = (DraggableText)node;
                 double x = text.getX();
                 double y = text.getY();
@@ -323,6 +336,11 @@ public class mmmFiles implements AppFileComponent{
     private JsonObject makeJsonTextObject(DraggableText text){
         String bold;
         String italicized;
+        double x = text.getX();
+        double y = text.getY();
+        String type = "TEXT";
+        Color bgColor = (Color)text.getFill();
+	JsonObject fillColorJson = makeJsonColorObject(bgColor);
         
         if(text.isItalicized()){
             italicized = "true";
@@ -340,6 +358,10 @@ public class mmmFiles implements AppFileComponent{
                 .add(JSON_TEXT_FONT_SIZE, text.getFontSize())
                 .add(JSON_TEXT_FONT_STYLE, text.getFontStyle())
                 .add(JSON_TEXT_FONT_ITALICIZED, italicized)
+                .add(JSON_X, x)
+                .add(JSON_Y, y)
+                .add(JSON_TYPE, type)
+                .add(JSON_FILL_COLOR, fillColorJson)
                 .add(JSON_TEXT_FONT_BOLDED, bold).build();
         return textObject;
     }
@@ -487,15 +509,26 @@ public class mmmFiles implements AppFileComponent{
 	for (int i = 0; i < jsonShapeArray.size(); i++) {
 	    JsonObject jsonShape = jsonShapeArray.getJsonObject(i);
 	    Shape shape = loadShape(jsonShape, dataManager);
-	    dataManager.addShape(shape);
+            if(shape instanceof DraggableText){
+                if(((DraggableText)shape).getMetroLine() != null || ((DraggableText)shape).isStationText()){
+                    
+                }
+                else
+                    dataManager.addShape(shape);
+            }
+            else
+                dataManager.addShape(shape);
 	}
         
-        workspace.getCenterPane().setScaleX(getDataAsDouble(json, JSON_MAP_SCALE));
-        workspace.getCenterPane().setScaleY(getDataAsDouble(json, JSON_MAP_SCALE));
-        dataManager.setMapScale(getDataAsDouble(json, JSON_MAP_SCALE));
+        workspace.getCenterPane().setScaleX(1);
+        workspace.getCenterPane().setScaleY(1);
+        dataManager.setMapScale(1);
         workspace.getCanvas().setScaleX(1);
         workspace.getCanvas().setScaleY(1);
+        workspace.getCanvas().setTranslateX(0);
+        workspace.getCanvas().setTranslateY(0);
         dataManager.setZoomScale(1);
+
     }
     
     private Shape loadShape(JsonObject jsonShape, mmmData data) {
@@ -554,8 +587,13 @@ public class mmmFiles implements AppFileComponent{
         String boolB = jsonText.getString(JSON_TEXT_FONT_BOLDED);
         boolean isItalicized = Boolean.parseBoolean(boolI);
         boolean isBolded = Boolean.parseBoolean(boolB);
+        double x = getDataAsDouble(json.getJsonObject(textObj), JSON_X);
+        double y = getDataAsDouble(json.getJsonObject(textObj), JSON_Y);
+        String type = jsonText.getString(JSON_TYPE);
+        Color fillColor = loadColor(jsonText, JSON_FILL_COLOR);
         
         DraggableText text = new DraggableText(textStyle, fontSize);
+        text.setFill(fillColor);
         text.setText(textString);
         
         if(!isBolded && !isItalicized){
@@ -581,6 +619,9 @@ public class mmmFiles implements AppFileComponent{
             text.setBolded(true);
             text.setItalicized(true);
         }
+        
+        text.setX(x);
+        text.setY(y);
         
         return text;
     }
@@ -616,21 +657,13 @@ public class mmmFiles implements AppFileComponent{
             else
                 isInList = false;
         }
-        
-        DraggableText topLabel = new DraggableText(name, 18);
-        DraggableText bottomLabel = new DraggableText(name, 18);
-        topLabel.setText(name);
-        topLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
-        bottomLabel.setText(name);
-        bottomLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
-        double topLabelX = getDataAsDouble(obj, JSON_TOP_LABEL_X);
-        double topLabelY = getDataAsDouble(obj, JSON_TOP_LABEL_Y);
-        double bottomLabelX = getDataAsDouble(obj, JSON_BOTTOM_LABEL_X);
-        double bottomLabelY = getDataAsDouble(obj, JSON_BOTTOM_LABEL_Y);
-        topLabel.setX(topLabelX);
-        topLabel.setY(topLabelY);
-        bottomLabel.setX(bottomLabelX);
-        bottomLabel.setY(bottomLabelY);
+        JsonObject label1 = obj.getJsonObject(JSON_LABEL_1);
+        JsonObject label2 = obj.getJsonObject(JSON_LABEL_2);
+        DraggableText topLabel = loadText(obj, JSON_LABEL_1 );
+        DraggableText bottomLabel = loadText(obj, JSON_LABEL_2);
+        topLabel.setMetroLine(metroLine);
+        bottomLabel.setMetroLine(metroLine);
+
         metroLine.addTopLabel(topLabel);
         metroLine.addBottomLabel(bottomLabel);
         dataManager.addMetroLine(metroLine);
@@ -651,7 +684,7 @@ public class mmmFiles implements AppFileComponent{
     }
     
     private Station loadStation(JsonObject obj, mmmData data){
-        
+        mmmData dataManager = (mmmData)data;
         String name = obj.getString(JSON_NAME);
         Station s = new Station(name);
         
@@ -663,9 +696,8 @@ public class mmmFiles implements AppFileComponent{
         double height = getDataAsDouble(obj, JSON_HEIGHT);
         int positionNumber = (int)getDataAsDouble(obj, JSON_POSITION_NUMBER);
         int isRotated = (int)getDataAsDouble(obj, JSON_IS_ROTATED);
-        Text text = new Text();
-        text.setText(name);
-        text.setFont(Font.font("System", 14));
+        DraggableText text = loadText(obj, JSON_LABEL_1);
+        text.setIsStationText(true);
         
         s.setFill(fill);
         s.setStrokeWidth(outlineThickness);
@@ -860,9 +892,6 @@ public class mmmFiles implements AppFileComponent{
             PrintWriter pw = new PrintWriter(filePath + "/" + gui.getCurrentFile().getName());
             pw.write(prettyPrinted);
             pw.close(); 
-            
-            //saveData(app.getDataComponent(), app.getGUI().getCurrentFile().getPath());
-            //loadData(app.getDataComponent(), app.getGUI().getCurrentFile().getPath());
         }
     }
 

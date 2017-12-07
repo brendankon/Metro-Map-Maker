@@ -389,52 +389,54 @@ public class mmmData implements AppDataComponent{
     
      public void processBoldRequest(Shape shape){
         
-        for(int i = 0; i < getTextShapes().size(); i++){
-            if(shape == getTextShapes().get(i)){
-                if(getTextShapes().get(i).isBolded() && !getTextShapes().get(i).isItalicized()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.NORMAL, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isBolded = false;
+        for(int i = 0; i < getShapes().size(); i++){
+            if(shape == getShapes().get(i)){
+                DraggableText text = (DraggableText)getShapes().get(i);
+                if(text.isBolded() && !text.isItalicized()){
+                    text.setFont(Font.font(text.getFontStyle(), FontWeight.NORMAL, FontPosture.REGULAR, text.getFontSize()));
+                    text.isBolded = false;
                 }
                 
-                else if(getTextShapes().get(i).isBolded() && getTextShapes().get(i).isItalicized()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.NORMAL, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isBolded = false;
+                else if(text.isBolded() && text.isItalicized()){
+                    text.setFont(Font.font(text.getFontStyle(), FontWeight.NORMAL, FontPosture.ITALIC, text.getFontSize()));
+                    text.isBolded = false;
                 }
                 
-                else if(!getTextShapes().get(i).isBolded() && !getTextShapes().get(i).isItalicized()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.BOLD, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isBolded = true;
+                else if(!text.isBolded() && !text.isItalicized()){
+                    text.setFont(Font.font(text.getFontStyle(), FontWeight.BOLD, FontPosture.REGULAR, text.getFontSize()));
+                    text.isBolded = true;
                 }
                 
-                else if(!getTextShapes().get(i).isBolded() && getTextShapes().get(i).isItalicized()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(), FontWeight.BOLD, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isBolded = true;
+                else if(!text.isBolded() && text.isItalicized()){
+                    text.setFont(Font.font(text.getFontStyle(), FontWeight.BOLD, FontPosture.ITALIC, text.getFontSize()));
+                    text.isBolded = true;
                 }
             }
         }
     }
     
     public void processItalicsRequest(Shape shape){
-        for(int i = 0; i < getTextShapes().size(); i++){
-            if(shape == getTextShapes().get(i)){
-                if(getTextShapes().get(i).isItalicized() && !getTextShapes().get(i).isBolded()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.NORMAL, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isItalicized = false;
+        for(int i = 0; i < getShapes().size(); i++){
+            if(shape == getShapes().get(i)){
+                DraggableText text = (DraggableText)getShapes().get(i);
+                if(text.isItalicized() && !text.isBolded()){
+                    text.setFont(Font.font(text.getFontStyle(),FontWeight.NORMAL, FontPosture.REGULAR, text.getFontSize()));
+                    text.isItalicized = false;
                 }
                 
-                else if(getTextShapes().get(i).isItalicized() && getTextShapes().get(i).isBolded()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.BOLD, FontPosture.REGULAR, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isItalicized = false;
+                else if(text.isItalicized() && text.isBolded()){
+                    text.setFont(Font.font(text.getFontStyle(),FontWeight.BOLD, FontPosture.REGULAR, text.getFontSize()));
+                    text.isItalicized = false;
                 }
                 
-                else if(!getTextShapes().get(i).isItalicized() && !getTextShapes().get(i).isBolded()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.NORMAL, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isItalicized = true;
+                else if(!text.isItalicized() && !text.isBolded()){
+                    text.setFont(Font.font(text.getFontStyle(),FontWeight.NORMAL, FontPosture.ITALIC, text.getFontSize()));
+                    text.isItalicized = true;
                 }
                 
-                else if(!getTextShapes().get(i).isItalicized() && getTextShapes().get(i).isBolded()){
-                    getTextShapes().get(i).setFont(Font.font(getTextShapes().get(i).getFontStyle(),FontWeight.BOLD, FontPosture.ITALIC, getTextShapes().get(i).getFontSize()));
-                    getTextShapes().get(i).isItalicized = true;
+                else if(!text.isItalicized() && text.isBolded()){
+                    text.setFont(Font.font(text.getFontStyle(),FontWeight.BOLD, FontPosture.ITALIC, text.getFontSize()));
+                    text.isItalicized = true;
                 }
             }
         }

@@ -524,6 +524,10 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         return routeBox2;
     }
     
+    public ColorPicker getFontColorPicker(){
+        return fontColorPicker;
+    }
+    
     public void resetLineBox(){
         lineBox.getItems().removeAll(lineBox.getItems());
         lineBox.setValue("");
@@ -665,6 +669,11 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             canvas.requestFocus();
         });
         increaseMapSize.setOnAction(e ->{
+            if(!isBack){
+               centerPane.snapshot(new SnapshotParameters(), null);
+               workspace.toBack();
+               isBack = true;
+           }
             controller.processIncreaseMapSize();
             canvas.requestFocus();
         });
@@ -672,12 +681,15 @@ public class mmmWorkspace extends AppWorkspaceComponent{
            controller.processDecreaseMapSize();
            canvas.requestFocus();
         });
+        saveAs.setOnAction(e ->{
+            controller.processSaveAsRequest();
+        });
         canvas.setOnKeyPressed(e ->{
             controller.processPanRequest(e);
         });
         fontStyleBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
             jTPS j = data.getJTPS();
-            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, t1,t, false, false, (DraggableText)data.getSelectedShape(), app, "");
+            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, t1,t, false, false, data.getSelectedShape(), app, "");
             j.addTransaction(transaction);
             if(data.getJTPS().getTransList().size() == 1){
                 redoCounter = 0;
@@ -688,7 +700,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         });
         fontSizeBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue ov, Object t, Object t1) -> {
             jTPS j = data.getJTPS();
-            jTPS_Transaction transaction = new ChangeText_Transaction(t1,t, null,null, false, false, (DraggableText)data.getSelectedShape(), app, "");
+            jTPS_Transaction transaction = new ChangeText_Transaction(t1,t, null,null, false, false, data.getSelectedShape(), app, "");
             j.addTransaction(transaction);
             if(data.getJTPS().getTransList().size() == 1){
                 redoCounter = 0;
@@ -699,7 +711,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         });
         boldButton.setOnAction(e->{
             jTPS j = data.getJTPS();
-            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, null,null, true, false, (DraggableText)data.getSelectedShape(), app, "");
+            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, null,null, true, false, data.getSelectedShape(), app, "");
             j.addTransaction(transaction);
             if(data.getJTPS().getTransList().size() == 1){
                 redoCounter = 0;
@@ -711,7 +723,7 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         });
         italicsButton.setOnAction(e->{
             jTPS j = data.getJTPS();
-            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, null,null, false, true, (DraggableText)data.getSelectedShape(), app, "");
+            jTPS_Transaction transaction = new ChangeText_Transaction(null,null, null,null, false, true, data.getSelectedShape(), app, "");
             j.addTransaction(transaction);
             if(data.getJTPS().getTransList().size() == 1){
                 redoCounter = 0;
@@ -737,6 +749,10 @@ public class mmmWorkspace extends AppWorkspaceComponent{
         });
         snapButton.setOnAction(e ->{
             controller.processSnapToGridRequest();
+            canvas.requestFocus();
+        });
+        fontColorPicker.setOnAction(e ->{
+            controller.processTextColorRequest();
             canvas.requestFocus();
         });
         
@@ -1046,10 +1062,9 @@ public class mmmWorkspace extends AppWorkspaceComponent{
 
             if(t1 != null){
                 mmmData data = (mmmData)app.getDataComponent();
-                for(int i = 0; i < data.getTextShapes().size(); i++){
-                    if(shape == data.getTextShapes().get(i)){
-                        DraggableText text = data.getTextShapes().get(i);
-                        //data.getTextShapes().get(i).setFont(Font.font(data.getTextShapes().get(i).getFont().getFamily(), (double)((Integer)t1)));
+                for(int i = 0; i < data.getShapes().size(); i++){
+                    if(shape == data.getShapes().get(i)){
+                        DraggableText text = (DraggableText)data.getShapes().get(i);
                         
                         if(!text.isBolded() && !text.isItalicized()){
                             text.setFont(Font.font(text.getFontStyle(), FontWeight.NORMAL, FontPosture.REGULAR, (double)((Integer)t1)));
@@ -1080,13 +1095,13 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             }
     }
     
-    public void processFontStyleRequest(Object t1, Shape shape){
+    public void processFontStyleRequest(Object t1, DraggableText shape){
         
         if (t1 != null) {
             mmmData data = (mmmData)app.getDataComponent();
-            for(int i = 0; i < data.getTextShapes().size(); i++){
-                if(shape == data.getTextShapes().get(i)){
-                    data.getTextShapes().get(i).setFont(Font.font((String)t1, data.getTextShapes().get(i).getFont().getSize()));
+            for(int i = 0; i < data.getShapes().size(); i++){
+                if(shape == data.getShapes().get(i)){
+                    ((DraggableText)data.getShapes().get(i)).setFont(Font.font((String)t1, ((DraggableText)data.getShapes().get(i)).getFont().getSize()));
                     break;
                 }
             }
@@ -1117,10 +1132,11 @@ public class mmmWorkspace extends AppWorkspaceComponent{
             
             removeElementButton.setDisable(!(isText || isImage));
             
-            boldButton.setDisable(!isText);
-            italicsButton.setDisable(!isText);
-            fontSizeBox.setDisable(!isText);
-            fontStyleBox.setDisable(!isText);
+            boldButton.setDisable(!(isText || isStation));
+            italicsButton.setDisable(!(isText || isStation));
+            fontSizeBox.setDisable(!(isText || isStation));
+            fontStyleBox.setDisable(!(isText || isStation));
+            fontColorPicker.setDisable(!(isText || isStation));
 
     }
     

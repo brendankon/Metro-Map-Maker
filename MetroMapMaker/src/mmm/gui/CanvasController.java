@@ -70,10 +70,14 @@ public class CanvasController {
                                 for(int l = 0; l < dataManager.getMetroLines().get(i).getLines().size(); l++){
                                     dataManager.highlightShape(dataManager.getMetroLines().get(i).getLines().get(l));
                                 }
-                                workspace.updateEditToolbar(true, false, false, false, false);
+                                workspace.updateEditToolbar(true, false, true, false, false);
                             }
                         }
                     }
+                }
+                
+                else if(shape instanceof DraggableText &&((DraggableText)shape).isStationText()){
+                     workspace.updateEditToolbar(false, false, false, false, false);
                 }
 
                 else if (shape != null) {
@@ -97,6 +101,7 @@ public class CanvasController {
                         workspace.stationsBox.setValue("");
                         if(!(shape instanceof DraggableText))
                             workspace.updateEditToolbar(false, false, false, false, false);
+
                     }
                     
                     if(shape instanceof DraggableRectangle){
@@ -109,6 +114,7 @@ public class CanvasController {
                         
                         if(((DraggableText)shape).getLineName() == null)
                             workspace.updateEditToolbar(false, false, true, false, false);
+                       
                         
                         for(int i = 0; i < dataManager.getMetroLines().size(); i++){
                             if(dataManager.getMetroLines().get(i).getTopLabel() == (DraggableText) shape){
@@ -160,7 +166,8 @@ public class CanvasController {
                             }
                         }
                     }
-                    app.getGUI().updateToolbarControls(false); 
+                    app.getGUI().updateToolbarControls(false);
+                    workspace.saveAs.setDisable(false);
                  
                 } else {
                     workspace.lineBox.setValue("");
@@ -183,6 +190,7 @@ public class CanvasController {
                     if(shape instanceof Station){
                         controller.addToLine((Station)shape, dataManager.getSelectedLine());
                         app.getGUI().updateToolbarControls(false);
+                        workspace.saveAs.setDisable(false);
                     }
                     
                     else {
@@ -209,6 +217,7 @@ public class CanvasController {
                         if(((Station)shape).getMetroLines().contains(dataManager.getSelectedLine())){
                             controller.removeFromLine((Station)shape, dataManager.getSelectedLine());
                             app.getGUI().updateToolbarControls(false); 
+                            workspace.saveAs.setDisable(false);
                         }
                     }
                     
@@ -259,6 +268,7 @@ public class CanvasController {
                             startMouseY = y;
                         }
                         app.getGUI().updateToolbarControls(false);
+                        workspace.saveAs.setDisable(false);
                     }
                 }
             }
@@ -277,6 +287,7 @@ public class CanvasController {
             Scene scene = app.getGUI().getPrimaryScene();
             scene.setCursor(Cursor.DEFAULT);
             app.getGUI().updateToolbarControls(false);
+            workspace.saveAs.setDisable(false);
             
             if(dataManager.getSelectedShape() instanceof Draggable){
 

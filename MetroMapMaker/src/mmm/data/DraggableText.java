@@ -30,6 +30,7 @@ public class DraggableText extends Text implements Draggable {
     double refY;
     String lineName;
     MetroLine metroLine;
+    boolean isStationText = false;
     
     public DraggableText(String style, double size){
         
@@ -173,5 +174,13 @@ public class DraggableText extends Text implements Draggable {
     
     public MetroLine getMetroLine(){
         return metroLine;
+    }
+    
+    public boolean isStationText(){
+        return isStationText;
+    }
+    
+    public void setIsStationText(boolean b){
+        isStationText = b;
     }
 }

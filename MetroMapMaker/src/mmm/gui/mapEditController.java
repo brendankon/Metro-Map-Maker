@@ -12,9 +12,11 @@ import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import mmm.data.mmmData;
 import djf.AppTemplate;
+import djf.controller.AppFileController;
 import static djf.settings.AppPropertyType.LOAD_ERROR_MESSAGE;
 import static djf.settings.AppPropertyType.LOAD_ERROR_TITLE;
 import static djf.settings.AppPropertyType.LOAD_WORK_TITLE;
+import static djf.settings.AppStartupConstants.PATH_EXPORT;
 import static djf.settings.AppStartupConstants.PATH_IMAGES;
 import static djf.settings.AppStartupConstants.PATH_WORK;
 import djf.ui.AppMessageDialogSingleton;
@@ -25,6 +27,8 @@ import mmm.data.MetroLine;
 import mmm.data.DraggableText;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.control.Alert;
@@ -147,10 +151,10 @@ public class mapEditController {
             startLine.setStroke(fill);
             
             DraggableText label1 = new DraggableText("System", 18);
-            label1.setFont(Font.font("System", FontWeight.BOLD, 18));
+            label1.setFont(Font.font("Arial", 18));
             label1.setLineName(name);
             DraggableText label2 = new DraggableText("System", 18);
-            label2.setFont(Font.font("System", FontWeight.BOLD, 18));
+            label2.setFont(Font.font("Arial", 18));
             label2.setLineName(name);
             
             label1.setX(250);
@@ -212,8 +216,10 @@ public class mapEditController {
             Station s = new Station(name);
             s.setCenterX(550);
             s.setCenterY(300);
-            Text t = new Text(name);
-            t.setFont(Font.font("System", 14));
+            DraggableText t = new DraggableText("System", 14);
+            t.setText(name);
+            t.setIsStationText(true);
+            t.setFont(Font.font("Arial", 14));
             t.xProperty().bind(s.centerXProperty().add(20 + s.getRadiusX()));
             t.yProperty().bind(s.centerYProperty().subtract(10 + s.getRadiusY()));
             s.setLabel(t);
@@ -490,12 +496,19 @@ public class mapEditController {
             Optional<ButtonType> result = alert.showAndWait();
             if(result.get() == ButtonType.OK){
                 
+                
                 for(int i = 0; i < metroLine.getLines().size(); i++){
                     dataManager.removeShape(metroLine.getLines().get(i));
                 }
                 
                 for(int j = 0; j < metroLine.getStations().size(); j++){
                     metroLine.getStations().get(j).getMetroLines().remove(metroLine);
+                }
+                
+                for(int i = 0; i < metroLine.getStations().size(); i++){
+                    for(int j = 0; j < metroLine.getStations().get(i).getMetroLines().size(); j++){
+                        metroLine.getStations().get(i).getMetroLines().get(j).removeTransfer(metroLine);
+                    }
                 }
                 
                 dataManager.getMetroLines().remove(metroLine);
@@ -535,6 +548,12 @@ public class mapEditController {
                 workspace.routeBox1.getItems().remove(station.getName());
                 workspace.routeBox2.getItems().remove(station.getName());
                 dataManager.removeShape(station.getLabel());
+                for(int i = 0; i < station.getMetroLines().size(); i++){
+                    for(int j = 0; j < station.getMetroLines().size(); j++){
+                        station.getMetroLines().get(i).removeTransfer(station.getMetroLines().get(j));
+                        station.getMetroLines().get(j).removeTransfer(station.getMetroLines().get(i));
+                    }
+                }
             }
             
             if(result.get() == ButtonType.CANCEL){ }
@@ -600,6 +619,53 @@ public class mapEditController {
                 canvas.setTranslateX(canvas.getTranslateX() - 100);
             }
         }
+    }
+    
+    public void processSaveAsRequest(){
+        AppFileController controller = new AppFileController(app);
+        String fileName = app.getGUI().getCurrentFile().getName();
+        File workDir = new File(PATH_WORK);
+        File exportDir = new File(PATH_EXPORT);
+        File[] files = workDir.listFiles();
+        File[] exportFiles = exportDir.listFiles();
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Save As");
+        dialog.setHeaderText("Enter new file name:");
+        
+        Optional<String> result = dialog.showAndWait();
+        
+        result.ifPresent(name ->{
+            for(int i = 0; i < files.length; i++){
+                if(files[i].getName().equals(name)){
+                        Alert alert = new Alert(AlertType.WARNING, "File name already exists. Do you wish to enter a new name?", ButtonType.YES, ButtonType.CANCEL);
+                        alert.setHeaderText("File Name Already Exists");
+                        Optional<ButtonType> result2 = alert.showAndWait();
+                        if(result2.get() == ButtonType.YES){
+                            processSaveAsRequest();
+                            return;
+                        }
+                        else{
+                            
+                        }
+                }
+            }
+            File newName = new File(PATH_WORK + "/" + name);
+            try {
+                newName.createNewFile();
+            } catch (IOException ex) {
+                Logger.getLogger(mapEditController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            File newDir = new File(PATH_EXPORT + "/" + name);
+            newDir.mkdir();
+            try {
+                app.getFileComponent().saveData(dataManager, newName.getPath());
+            } catch (IOException ex) {
+                Logger.getLogger(mapEditController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        });
+
     }
     
     public void processEditLineRequest(){
@@ -737,6 +803,7 @@ public class mapEditController {
                 workspace.redoButton.setDisable(true);
             }
 	    app.getGUI().updateToolbarControls(false);
+            workspace.saveAs.setDisable(false);
             workspace.undoButton.setDisable(false);
 	}
     }
@@ -910,9 +977,11 @@ public class mapEditController {
     }
     
     public void processSelectOutlineThickness(Slider selectedSlider) {
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
 	int outlineThickness = (int)selectedSlider.getValue();
 	dataManager.setCurrentOutlineThickness(outlineThickness);
 	app.getGUI().updateToolbarControls(false);
+        workspace.saveAs.setDisable(false);
     }
     
     public void processSnapToGridRequest(){
@@ -989,6 +1058,69 @@ public class mapEditController {
                 }
 
                 app.getGUI().updateToolbarControls(false);
+                workspace.saveAs.setDisable(false);
+                workspace.undoButton.setDisable(false);
+            }
+        }
+    }
+    
+    public void processTextColorRequest(){
+        if(dataManager.getSelectedShape() instanceof DraggableText){
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            Color selectedColor = workspace.getFontColorPicker().getValue();
+            if (selectedColor != null) {
+                if(dataManager.getSelectedShape() != null){
+                    jTPS j = dataManager.getJTPS();
+                    jTPS_Transaction transaction = new AddColor_Transaction(selectedColor, false, true, dataManager, dataManager.getSelectedShape(), app);
+                    j.addTransaction(transaction);
+                    if(dataManager.getJTPS().getTransList().size() == 1){
+                        workspace.redoCounter = 0;
+                        workspace.redoButton.setDisable(true);
+                    }
+                }
+
+                app.getGUI().updateToolbarControls(false);
+                workspace.saveAs.setDisable(false);
+                workspace.undoButton.setDisable(false);
+            }
+        }
+        
+        if(dataManager.getSelectedShape() instanceof Station){
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            Color selectedColor = workspace.getFontColorPicker().getValue();
+            if (selectedColor != null) {
+                if(dataManager.getSelectedShape() != null){
+                    jTPS j = dataManager.getJTPS();
+                    jTPS_Transaction transaction = new AddColor_Transaction(selectedColor, false, true, dataManager, ((Station)dataManager.getSelectedShape()).getLabel(), app);
+                    j.addTransaction(transaction);
+                    if(dataManager.getJTPS().getTransList().size() == 1){
+                        workspace.redoCounter = 0;
+                        workspace.redoButton.setDisable(true);
+                    }
+                }
+
+                app.getGUI().updateToolbarControls(false);
+                workspace.saveAs.setDisable(false);
+                workspace.undoButton.setDisable(false);
+            }
+        }
+        
+        if(dataManager.getSelectedShape() instanceof Line){
+            mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
+            Color selectedColor = workspace.getFontColorPicker().getValue();
+            if (selectedColor != null) {
+                if(dataManager.getSelectedShape() != null){
+                    jTPS j = dataManager.getJTPS();
+                    jTPS_Transaction transaction = new AddColor_Transaction(selectedColor, false, true, dataManager, ((MetroLine)dataManager.getSelectedLine()).getTopLabel(), app);
+                    j.addTransaction(transaction);
+                    if(dataManager.getJTPS().getTransList().size() == 1){
+                        workspace.redoCounter = 0;
+                        workspace.redoButton.setDisable(true);
+                    }
+                }
+
+                app.getGUI().updateToolbarControls(false);
+                workspace.saveAs.setDisable(false);
                 workspace.undoButton.setDisable(false);
             }
         }
@@ -1010,6 +1142,7 @@ public class mapEditController {
             }
             workspace.reloadWorkspace(dataManager);
             app.getGUI().updateToolbarControls(false);
+            workspace.saveAs.setDisable(false);
             workspace.undoButton.setDisable(false);
         }
     }
