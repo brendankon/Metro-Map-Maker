@@ -780,6 +780,8 @@ public class mmmFiles implements AppFileComponent{
         mmmWorkspace workspace = dataManager.getWorkspace();
         mapEditController controller = workspace.getController();
         if(gui.getCurrentFile() != null){
+            workspace.getCanvas().setTranslateX(0);
+            workspace.getCanvas().setTranslateY(0);
             workspace.getCanvas().setScaleX(1);
             workspace.getCanvas().setScaleY(1);
             dataManager.setZoomScale(1);

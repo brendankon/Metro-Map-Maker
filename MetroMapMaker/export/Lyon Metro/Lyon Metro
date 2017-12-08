@@ -1,0 +1,300 @@
+
+{
+    "name":"Lyon Metro",
+    "lines":[
+        {
+            "name":"A",
+            "circular":false,
+            "color":{
+                "red":0.9019607901573181,
+                "green":0.3019607961177826,
+                "blue":0.3019607961177826,
+                "alpha":1.0
+            },
+            "station_names":[
+                "Perrache",
+                "Ampere Victor Hugo",
+                "Bellecour",
+                "Cordeliers",
+                "Hotel de Ville Louis Pradel",
+                "Foch",
+                "Massena",
+                "Charpennes Charles Hernu",
+                "Republique Vileurbanne",
+                "Gratte-Ciel",
+                "Flachet",
+                "Cusset",
+                "Laurent Bonnevay Astroballe",
+                "Vaulx-en-Velin La Soie"
+            ]
+        },
+        {
+            "name":"B",
+            "circular":false,
+            "color":{
+                "red":0.501960813999176,
+                "green":0.6000000238418579,
+                "blue":1.0,
+                "alpha":1.0
+            },
+            "station_names":[
+                "Oullins Gare",
+                "Stade de Gerland",
+                "Debourg",
+                "Place Jean Jaures",
+                "Jean Mace",
+                "Saxe Gambetta",
+                "Place Guichard Bourse du Travail",
+                "Gare Part-Dieu Vivier Merle",
+                "Brotteaux",
+                "Charpennes Charles Hernu"
+            ]
+        },
+        {
+            "name":"C",
+            "circular":false,
+            "color":{
+                "red":1.0,
+                "green":0.6000000238418579,
+                "blue":0.4000000059604645,
+                "alpha":1.0
+            },
+            "station_names":[
+                "Cuire",
+                "Henon",
+                "Croix-Rousse",
+                "Croix-Paquet",
+                "Hotel de Ville Louis Pradel"
+            ]
+        },
+        {
+            "name":"D",
+            "circular":false,
+            "color":{
+                "red":0.3019607961177826,
+                "green":0.501960813999176,
+                "blue":0.3019607961177826,
+                "alpha":1.0
+            },
+            "station_names":[
+                "Gare de Vaise",
+                "Valmy",
+                "Gorge de Loup",
+                "Vieux Lyon Catherdrale St. Jean",
+                "Bellecour",
+                "Guillatiere",
+                "Saxe Gambetta",
+                "Garibaldi",
+                "Sans-Souci",
+                "Monplaisir-Lumiere",
+                "Grange Blanche",
+                "Laennec",
+                "Mermoz Pinel",
+                "Parilly",
+                "Gare de Venissieux"
+            ]
+        }
+    ],
+    "stations":[
+        {
+            "name":"Perrache",
+            "x":319.0,
+            "y":559.0
+        },
+        {
+            "name":"Ampere Victor Hugo",
+            "x":336.0,
+            "y":501.0
+        },
+        {
+            "name":"Bellecour",
+            "x":372.0,
+            "y":427.0
+        },
+        {
+            "name":"Cordeliers",
+            "x":421.0,
+            "y":374.0
+        },
+        {
+            "name":"Hotel de Ville Louis Pradel",
+            "x":457.0,
+            "y":269.0
+        },
+        {
+            "name":"Foch",
+            "x":594.0,
+            "y":232.0
+        },
+        {
+            "name":"Massena",
+            "x":705.0,
+            "y":221.0
+        },
+        {
+            "name":"Charpennes Charles Hernu",
+            "x":851.0,
+            "y":213.0
+        },
+        {
+            "name":"Republique Vileurbanne",
+            "x":1007.0,
+            "y":181.0
+        },
+        {
+            "name":"Gratte-Ciel",
+            "x":1144.0,
+            "y":231.0
+        },
+        {
+            "name":"Flachet",
+            "x":1216.0,
+            "y":306.0
+        },
+        {
+            "name":"Cusset",
+            "x":1268.0,
+            "y":375.0
+        },
+        {
+            "name":"Laurent Bonnevay Astroballe",
+            "x":1328.0,
+            "y":442.0
+        },
+        {
+            "name":"Vaulx-en-Velin La Soie",
+            "x":1378.0,
+            "y":500.0
+        },
+        {
+            "name":"Oullins Gare",
+            "x":442.0,
+            "y":813.0
+        },
+        {
+            "name":"Stade de Gerland",
+            "x":507.0,
+            "y":780.0
+        },
+        {
+            "name":"Debourg",
+            "x":551.0,
+            "y":714.0
+        },
+        {
+            "name":"Place Jean Jaures",
+            "x":595.0,
+            "y":646.0
+        },
+        {
+            "name":"Jean Mace",
+            "x":634.0,
+            "y":582.0
+        },
+        {
+            "name":"Saxe Gambetta",
+            "x":661.0,
+            "y":516.0
+        },
+        {
+            "name":"Place Guichard Bourse du Travail",
+            "x":701.0,
+            "y":447.0
+        },
+        {
+            "name":"Gare Part-Dieu Vivier Merle",
+            "x":728.0,
+            "y":373.0
+        },
+        {
+            "name":"Brotteaux",
+            "x":778.0,
+            "y":305.0
+        },
+        {
+            "name":"Cuire",
+            "x":461.0,
+            "y":108.0
+        },
+        {
+            "name":"Henon",
+            "x":405.0,
+            "y":136.0
+        },
+        {
+            "name":"Croix-Rousse",
+            "x":435.0,
+            "y":178.0
+        },
+        {
+            "name":"Croix-Paquet",
+            "x":468.0,
+            "y":218.0
+        },
+        {
+            "name":"Gare de Vaise",
+            "x":185.0,
+            "y":151.0
+        },
+        {
+            "name":"Valmy",
+            "x":206.0,
+            "y":226.0
+        },
+        {
+            "name":"Gorge de Loup",
+            "x":224.0,
+            "y":306.0
+        },
+        {
+            "name":"Vieux Lyon Catherdrale St. Jean",
+            "x":284.0,
+            "y":371.0
+        },
+        {
+            "name":"Guillatiere",
+            "x":517.0,
+            "y":465.0
+        },
+        {
+            "name":"Garibaldi",
+            "x":813.0,
+            "y":531.0
+        },
+        {
+            "name":"Sans-Souci",
+            "x":897.0,
+            "y":553.0
+        },
+        {
+            "name":"Monplaisir-Lumiere",
+            "x":981.0,
+            "y":578.0
+        },
+        {
+            "name":"Grange Blanche",
+            "x":1056.0,
+            "y":613.0
+        },
+        {
+            "name":"Laennec",
+            "x":1108.0,
+            "y":649.0
+        },
+        {
+            "name":"Mermoz Pinel",
+            "x":1182.0,
+            "y":701.0
+        },
+        {
+            "name":"Parilly",
+            "x":1242.0,
+            "y":755.0
+        },
+        {
+            "name":"Gare de Venissieux",
+            "x":1279.0,
+            "y":803.0
+        }
+    ]
+}

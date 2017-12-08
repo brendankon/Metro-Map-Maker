@@ -29,12 +29,6 @@ public class RemoveShape_Transaction implements jTPS_Transaction{
         this.data = data;
         this.app = app;
         
-        
-        if(shape instanceof Station){
-            Station station = (Station)shape;
-            removedShape = station;
-            return;
-        }
 
         if(shape instanceof DraggableRectangle){
 

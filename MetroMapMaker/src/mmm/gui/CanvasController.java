@@ -18,6 +18,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
+import jtps.jTPS;
+import jtps.jTPS_Transaction;
 import mmm.data.Draggable;
 import static mmm.data.Draggable.ELLIPSE;
 import static mmm.data.Draggable.TEXT;
@@ -188,7 +190,11 @@ public class CanvasController {
                 
                 if(shape != null){ 
                     if(shape instanceof Station){
-                        controller.addToLine((Station)shape, dataManager.getSelectedLine());
+                        //controller.addToLine((Station)shape, dataManager.getSelectedLine());
+                        jTPS j = dataManager.getJTPS();
+                        jTPS_Transaction transaction = new AddToLine_Transaction(dataManager.getSelectedLine(), (Station)shape, app);
+                        j.addTransaction(transaction);
+                        workspace.undoButton.setDisable(false);
                         app.getGUI().updateToolbarControls(false);
                         workspace.saveAs.setDisable(false);
                     }
@@ -215,7 +221,11 @@ public class CanvasController {
                 if(shape != null){
                     if(shape instanceof Station){
                         if(((Station)shape).getMetroLines().contains(dataManager.getSelectedLine())){
-                            controller.removeFromLine((Station)shape, dataManager.getSelectedLine());
+                            //controller.removeFromLine((Station)shape, dataManager.getSelectedLine());
+                            jTPS j = dataManager.getJTPS();
+                            jTPS_Transaction transaction = new RemoveFromLine_Transaction(dataManager.getSelectedLine(), (Station)shape, app);
+                            j.addTransaction(transaction);
+                            workspace.undoButton.setDisable(false);
                             app.getGUI().updateToolbarControls(false); 
                             workspace.saveAs.setDisable(false);
                         }
@@ -275,8 +285,8 @@ public class CanvasController {
     }
         
     public void centerPaneMouseDrag(int x, int y){
-            centerPaneX = x;
-            centerPaneY = y;
+        centerPaneX = x;
+        centerPaneY = y;
     }
         
     public void processCanvasMouseRelease(int x, int y) {
@@ -291,14 +301,16 @@ public class CanvasController {
             
             if(dataManager.getSelectedShape() instanceof Draggable){
 
-                if(((Draggable)dataManager.getSelectedShape()).getShapeType().equals("ELLIPSE")){
+                if(((Draggable)dataManager.getSelectedShape()) instanceof Station){
                     Station ellipse = (Station)dataManager.getSelectedShape();
                     int endX = (int)ellipse.getCenterX();
                     int endY = (int)ellipse.getCenterY();
                     if(startX != 0){
-                        ellipse.setCenterX((double)endX);
-                        ellipse.setCenterY((double)endY);
-                        ellipse.start(x, y);
+                        jTPS j = dataManager.getJTPS();
+                        jTPS_Transaction transaction = new DragShape_Transaction(null, ellipse, null,startX, startY, endX, endY, app, startMouseX, startMouseY, x, y);
+                        j.addTransaction(transaction);
+                        startX = 0;
+                        workspace.undoButton.setDisable(false);
                     }
                 }
 
@@ -307,13 +319,31 @@ public class CanvasController {
                     int endX = (int)text.getX();
                     int endY = (int)text.getY();
                     if(startX != 0){
-                        text.setX((double)endX);
-                        text.setY((double)endY);
-                        text.start(x, y);
-                        MetroLine line = text.getMetroLine();
+                        jTPS j = dataManager.getJTPS();
+                        jTPS_Transaction transaction = new DragShape_Transaction(text, null, null,startX, startY, endX, endY, app, startMouseX, startMouseY, x, y);
+                        j.addTransaction(transaction);
+                        startX = 0;
+                        workspace.undoButton.setDisable(false);
+                    }
+                }
+                else{
+                    DraggableRectangle rect = (DraggableRectangle)dataManager.getSelectedShape();
+                    int endX = (int)rect.getX();
+                    int endY = (int)rect.getY();
+                    if(startX != 0){
+                        jTPS j = dataManager.getJTPS();
+                        jTPS_Transaction transaction = new DragShape_Transaction(null, null, rect,startX, startY, endX, endY, app, startMouseX, startMouseY, x, y);
+                        j.addTransaction(transaction);
+                        startX = 0;
+                        workspace.undoButton.setDisable(false);
                     }
                 }
                 startedDragging = false;
+                
+                if(dataManager.getJTPS().getTransList().size() == 1){
+                    workspace.redoCounter = 0;
+                    workspace.redoButton.setDisable(true);
+                }
             }
 
         } else if (dataManager.isInState(mmmState.DRAGGING_NOTHING)) {

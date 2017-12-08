@@ -171,13 +171,16 @@ public class mapEditController {
             startLine.endXProperty().bind(label2.xProperty().subtract( 20));
             startLine.endYProperty().bind(label2.yProperty().subtract(5));
             
-            dataManager.addShape(startLine);
-            dataManager.addShape(label1);
-            dataManager.addShape(label2);
-            dataManager.addMetroLine(line);
+            jTPS_Transaction transaction = new AddShape_Transaction(null, line, dataManager, app);
+                dataManager.getJTPS().addTransaction(transaction);
+                if(dataManager.getJTPS().getTransList().size() == 1){
+                    workspace.redoCounter = 0;
+                    workspace.redoButton.setDisable(true);
+                }
+            workspace.undoButton.setDisable(false);
+
             dataManager.selectTopShape((int)startLine.getStartX(), (int)startLine.getStartY());
-            workspace.lineBox.setValue(name);
-            workspace.setLineBox(name);
+            
         });
         
         cancel.setOnAction(e ->{
@@ -224,14 +227,15 @@ public class mapEditController {
             t.yProperty().bind(s.centerYProperty().subtract(10 + s.getRadiusY()));
             s.setLabel(t);
             
-            dataManager.addShape(s);
-            dataManager.addShape(t);
+            jTPS_Transaction transaction = new AddShape_Transaction(s, null, dataManager, app);
+                dataManager.getJTPS().addTransaction(transaction);
+                if(dataManager.getJTPS().getTransList().size() == 1){
+                    workspace.redoCounter = 0;
+                    workspace.redoButton.setDisable(true);
+                }
+            workspace.undoButton.setDisable(false);
             dataManager.selectTopShape((int)s.getCenterX(), (int)s.getCenterY());
 
-            workspace.stationsBox.setValue(name);
-            workspace.setStationBox(name);
-            workspace.routeBox1.getItems().add(name);
-            workspace.routeBox2.getItems().add(name);
            
         });
     }
@@ -250,6 +254,7 @@ public class mapEditController {
         if(!metroLine.getStations().contains(station)){
 
             if(metroLine.getLines().size() == 1){
+                
                 Line selectedLine = metroLine.getLines().get(0);
                 station.setCenterX((selectedLine.getStartX() + selectedLine.getEndX())/2);
                 station.setCenterY((selectedLine.getStartY() + selectedLine.getEndY())/2);
@@ -274,7 +279,7 @@ public class mapEditController {
                 bottomLine.startYProperty().bind(station.centerYProperty());
                 bottomLine.endXProperty().bind(bottomLabel.xProperty().subtract( 20));
                 bottomLine.endYProperty().bind(bottomLabel.yProperty().subtract(5));
-                
+
                 station.getMetroLines().add(metroLine);
                 metroLine.addStation(0, station);
                 metroLine.addLine(topLine);
@@ -300,8 +305,89 @@ public class mapEditController {
                                   metroLine.getStations().get(i).getCenterX(), metroLine.getStations().get(i).getCenterY());
                     }
                 }
+                
+                if(metroLine.getStations().size()==1){
+                    if(findDistance(station.getCenterX(), station.getCenterY(), metroLine.getTopLabel().getX(), metroLine.getTopLabel().getY()) < 
+                            findDistance(station.getCenterX(), station.getCenterY(), metroLine.getBottomLabel().getX(), metroLine.getBottomLabel().getY())){
+                        Line removedLine = metroLine.getLines().get(0);
+                        station.setCenterX((removedLine.getStartX() + removedLine.getEndX())/2);
+                        station.setCenterY((removedLine.getStartY() + removedLine.getEndY())/2);
 
-                if(metroLine.getStations().indexOf(minStation) == 0){
+                        Line topLine = new Line();
+                        Line bottomLine = new Line();
+                        topLine.setStroke(removedLine.getStroke());
+                        bottomLine.setStroke(removedLine.getStroke());
+                        topLine.setStrokeWidth(removedLine.getStrokeWidth());
+                        bottomLine.setStrokeWidth(removedLine.getStrokeWidth());
+
+                        metroLine.getLines().set(0, topLine);
+                        metroLine.getLines().add(1, bottomLine);
+                        dataManager.removeShape(removedLine);
+                        DraggableText topLabel = metroLine.getTopLabel();
+
+                        topLine.startXProperty().bind(topLabel.xProperty().add(topLabel.getText().length()*10 + 30));
+                        topLine.startYProperty().bind(topLabel.yProperty().subtract(5));
+                        topLine.endXProperty().bind(station.centerXProperty());
+                        topLine.endYProperty().bind(station.centerYProperty());
+                        bottomLine.startXProperty().bind(station.centerXProperty());
+                        bottomLine.startYProperty().bind(station.centerYProperty());
+                        bottomLine.endXProperty().bind(minStation.centerXProperty());
+                        bottomLine.endYProperty().bind(minStation.centerYProperty());
+
+                        station.getMetroLines().add(metroLine);
+                        metroLine.getStations().add(0, station);
+                        dataManager.addShape(topLine);
+                        dataManager.addShape(bottomLine);
+                        dataManager.removeShape(minStation);
+                        dataManager.addShape(minStation);
+                        dataManager.removeShape(station);
+                        dataManager.addShape(station);
+                    }
+                    
+                    else{
+                        Line removedLine = metroLine.getLines().get(metroLine.getLines().size()-1);
+                        station.setCenterX((removedLine.getStartX() + removedLine.getEndX())/2);
+                        station.setCenterY((removedLine.getStartY() + removedLine.getEndY())/2);
+
+                        Line topLine = new Line();
+                        Line bottomLine = new Line();
+                        topLine.setStroke(removedLine.getStroke());
+                        bottomLine.setStroke(removedLine.getStroke());
+                        topLine.setStrokeWidth(removedLine.getStrokeWidth());
+                        bottomLine.setStrokeWidth(removedLine.getStrokeWidth());
+
+                        metroLine.getLines().set(metroLine.getLines().size()-1, topLine);
+                        metroLine.getLines().add(bottomLine);
+                        dataManager.removeShape(removedLine);
+                        DraggableText bottomLabel = metroLine.getBottomLabel();
+
+                        topLine.startXProperty().bind(minStation.centerXProperty());
+                        topLine.startYProperty().bind(minStation.centerYProperty());
+                        topLine.endXProperty().bind(station.centerXProperty());
+                        topLine.endYProperty().bind(station.centerYProperty());
+                        bottomLine.startXProperty().bind(station.centerXProperty());
+                        bottomLine.startYProperty().bind(station.centerYProperty());
+                        bottomLine.endXProperty().bind(bottomLabel.xProperty().subtract( 20));
+                        bottomLine.endYProperty().bind(bottomLabel.yProperty().subtract(5));
+                        station.getMetroLines().add(metroLine);
+                        metroLine.getStations().add(station);
+                        dataManager.addShape(topLine);
+                        dataManager.addShape(bottomLine);
+                        dataManager.removeShape(minStation);
+                        dataManager.addShape(minStation);
+                        dataManager.removeShape(station);
+                        dataManager.addShape(station);
+
+                        if(metroLine.isCircular()){
+                            Line endLine = metroLine.getLines().get(metroLine.getLines().size()-1);
+                            endLine.endXProperty().bind(metroLine.getTopLabel().xProperty().add(metroLine.getName().length()*10 + 30));
+                            endLine.endYProperty().bind(metroLine.getTopLabel().yProperty().subtract(5));
+                            dataManager.getShapes().remove(metroLine.getBottomLabel());
+                        }
+                    }
+                }
+
+                else if(metroLine.getStations().indexOf(minStation) == 0){
                     Line removedLine = metroLine.getLines().get(0);
                     station.setCenterX((removedLine.getStartX() + removedLine.getEndX())/2);
                     station.setCenterY((removedLine.getStartY() + removedLine.getEndY())/2);
@@ -496,25 +582,14 @@ public class mapEditController {
             Optional<ButtonType> result = alert.showAndWait();
             if(result.get() == ButtonType.OK){
                 
-                
-                for(int i = 0; i < metroLine.getLines().size(); i++){
-                    dataManager.removeShape(metroLine.getLines().get(i));
+                jTPS_Transaction transaction = new RemoveLine_Transaction(metroLine, app);
+                dataManager.getJTPS().addTransaction(transaction);
+                if(dataManager.getJTPS().getTransList().size() == 1){
+                    workspace.redoCounter = 0;
+                    workspace.redoButton.setDisable(true);
                 }
+                workspace.undoButton.setDisable(false);
                 
-                for(int j = 0; j < metroLine.getStations().size(); j++){
-                    metroLine.getStations().get(j).getMetroLines().remove(metroLine);
-                }
-                
-                for(int i = 0; i < metroLine.getStations().size(); i++){
-                    for(int j = 0; j < metroLine.getStations().get(i).getMetroLines().size(); j++){
-                        metroLine.getStations().get(i).getMetroLines().get(j).removeTransfer(metroLine);
-                    }
-                }
-                
-                dataManager.getMetroLines().remove(metroLine);
-                dataManager.removeShape(metroLine.getTopLabel());
-                dataManager.removeShape(metroLine.getBottomLabel());
-                workspace.lineBox.getItems().remove(metroLine.getName());
             }
             
             if(result.get() == ButtonType.CANCEL){ }
@@ -523,6 +598,7 @@ public class mapEditController {
     
     public void processRemoveStationRequest(){
         
+        mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
         if(dataManager.getSelectedShape() instanceof Station && !((Station)dataManager.getSelectedShape()).isEndLabel()){
             
             Alert alert = new Alert(AlertType.WARNING, "Are you sure you want to remove this station?",ButtonType.OK, ButtonType.CANCEL);
@@ -532,28 +608,15 @@ public class mapEditController {
             
             if(result.get() == ButtonType.OK){
                 Station station = (Station)dataManager.getSelectedShape();
-
-                if(station.getMetroLines().isEmpty())
-                    dataManager.removeShape(station);
-
-                else{ 
-                    while(station.getMetroLines().size() > 0){
-                        removeFromLine(station, station.getMetroLines().get(0));
-                    }
-                    dataManager.removeShape(station);
+                
+                jTPS j = dataManager.getJTPS();
+                jTPS_Transaction transaction = new RemoveStation_Transaction(station, app);
+                j.addTransaction(transaction);
+                if(dataManager.getJTPS().getTransList().size() == 1){
+                    workspace.redoCounter = 0;
+                    workspace.redoButton.setDisable(true);
                 }
-
-                mmmWorkspace workspace = (mmmWorkspace)app.getWorkspaceComponent();
-                workspace.stationsBox.getItems().remove(station.getName());
-                workspace.routeBox1.getItems().remove(station.getName());
-                workspace.routeBox2.getItems().remove(station.getName());
-                dataManager.removeShape(station.getLabel());
-                for(int i = 0; i < station.getMetroLines().size(); i++){
-                    for(int j = 0; j < station.getMetroLines().size(); j++){
-                        station.getMetroLines().get(i).removeTransfer(station.getMetroLines().get(j));
-                        station.getMetroLines().get(j).removeTransfer(station.getMetroLines().get(i));
-                    }
-                }
+                workspace.undoButton.setDisable(false);
             }
             
             if(result.get() == ButtonType.CANCEL){ }
@@ -836,7 +899,7 @@ public class mapEditController {
                 newShape.setStrokeWidth(0);
                 
                 //shapes.add(newShape);
-                jTPS_Transaction transaction = new AddShape_Transaction(newShape, dataManager, app);
+                jTPS_Transaction transaction = new AddShape_Transaction(newShape, null,dataManager, app);
                 dataManager.getJTPS().addTransaction(transaction);
                 if(dataManager.getJTPS().getTransList().size() == 1){
                     workspace.redoCounter = 0;
@@ -1161,7 +1224,7 @@ public class mapEditController {
             DraggableText text = new DraggableText("Arial", 20.0);
             text.setText(input.get());
             text.start(500,300);
-            jTPS_Transaction transaction = new AddShape_Transaction((Shape)text, dataManager, app);
+            jTPS_Transaction transaction = new AddShape_Transaction((Shape)text, null, dataManager, app);
             dataManager.getJTPS().addTransaction(transaction);
             if(dataManager.getJTPS().getTransList().size() == 1){
                 workspace.redoCounter = 0;
